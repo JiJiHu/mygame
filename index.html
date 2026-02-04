@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小游戏合集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-color: #667eea;
+        }
+
+        .game-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .game-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .game-desc {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .game-viewer {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-viewer h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .back-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #5568d3;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 40px;
+            text-align: center;
+        }
+
+        .close-btn:hover {
+            background: #ee5a5a;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .game-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 小游戏合集</h1>
+        <p class="subtitle">选择一个游戏开始游玩</p>
+
+        <div class="game-grid" id="gameGrid">
+            <div class="game-card" onclick="showGame('snake')">
+                <div class="game-icon">🐍</div>
+                <div class="game-title">贪吃蛇</div>
+                <div class="game-desc">经典街机游戏，控制蛇吃食物变长</div>
+            </div>
+
+            <div class="game-card" onclick="showGame('gomoku')">
+                <div class="game-icon">⚫⚪</div>
+                <div class="game-title">五子棋</div>
+                <div class="game-desc">经典策略游戏，先连成5子者胜</div>
+            </div>
+
+            <div class="game-card" onclick="showGame('sudoku')">
+                <div class="game-icon">🔢</div>
+                <div class="game-title">数独</div>
+                <div class="game-desc">逻辑推理游戏，填满数字网格</div>
+            </div>
+        </div>
+
+        <div class="game-viewer" id="gameViewer">
+            <h2>欢迎来到小游戏合集！</h2>
+            <p>点击上方卡片选择游戏开始游玩</p>
+        </div>
+    </div>
+
+    <script>
+        function showGame(gameName) {
+            const viewer = document.getElementById('gameViewer');
+            viewer.innerHTML = `<button class="close-btn" onclick="hideGame()">×</button>`;
+            
+            switch(gameName) {
+                case 'snake':
+                    viewer.innerHTML += `
+                        <button class="back-btn" onclick="hideGame()">返回</button>
+                        <iframe src="games/snake/snake.html" style="width: 100%; height: 500px; border: none; border-radius: 10px;"></iframe>
+                    `;
+                    break;
+                case 'gomoku':
+                    viewer.innerHTML += `
+                        <button class="back-btn" onclick="hideGame()">返回</button>
+                        <iframe src="games/gomoku/gomoku.html" style="width: 100%; height: 500px; border: none; border-radius: 10px;"></iframe>
+                    `;
+                    break;
+                case 'sudoku':
+                    viewer.innerHTML += `
+                        <button class="back-btn" onclick="hideGame()">返回</button>
+                        <iframe src="games/sudoku/sudoku.html" style="width: 100%; height: 500px; border: none; border-radius: 10px;"></iframe>
+                    `;
+                    break;
+            }
+        }
+
+        function hideGame() {
+            const viewer = document.getElementById('gameViewer');
+            viewer.innerHTML = `
+                <h2>欢迎来到小游戏合集！</h2>
+                <p>点击上方卡片选择游戏开始游玩</p>
+            `;
+        }
+    </script>
+</body>
+</html>
