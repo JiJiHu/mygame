@@ -20,7 +20,6 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            overflow: hidden;
         }
 
         .game-container {
@@ -250,6 +249,79 @@
             font-size: 2em;
         }
 
+        /* 积分榜样式 */
+        .leaderboard-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            width: 500px;
+            max-width: 90%;
+            z-index: 1000;
+            animation: bounceIn 0.5s;
+        }
+
+        .leaderboard-container {
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .leaderboard-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .leaderboard-table .rank-1 {
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .leaderboard-table .rank-2 {
+            font-weight: bold;
+            color: #C0C0C0;
+        }
+
+        .leaderboard-table .rank-3 {
+            font-weight: bold;
+            color: #CD7F32;
+        }
+
+        .leaderboard-controls {
+            text-align: center;
+        }
+
+        .leaderboard-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+
         .final-stats {
             margin: 20px 0;
             text-align: left;
@@ -450,13 +522,41 @@
                     <option value="false">关闭</option>
                 </select>
             </div>
+            <div class="setting-item">
+                <label class="setting-label">全局积分榜</label>
+                <button class="btn" onclick="showLeaderboard()">查看排行榜</button>
+            </div>
         </div>
 
         <div class="instructions">
             <p>使用方向键或 WASD 控制移动 | 空格键暂停</p>
         </div>
-    </div>
 
+        <!-- 积分榜面板 -->
+        <div class="leaderboard-panel" id="leaderboardPanel" style="display: none;">
+            <h3 class="settings-title">全球积分榜</h3>
+            <div class="leaderboard-container">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>玩家</th>
+                            <th>分数</th>
+                            <th>等级</th>
+                            <th>日期</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- 动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="leaderboard-controls">
+                <button class="btn" onclick="hideLeaderboard()">关闭</button>
+            </div>
+        </div>
+
+    <div class="leaderboard-overlay" id="leaderboardOverlay"></div>
     <div class="game-over-overlay" id="gameOverOverlay"></div>
     <div class="game-over" id="gameOver">
         <h2>游戏结束！</h2>
@@ -925,6 +1025,99 @@
                 else if (dy < -30 && dy !== -1) { dx = 0; dy = -1; }
             }
         });
+
+        // 积分榜数据
+        let leaderboardData = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+
+        // 显示积分榜
+        function showLeaderboard() {
+            const panel = document.getElementById('leaderboardPanel');
+            const overlay = document.getElementById('leaderboardOverlay');
+            
+            // 排序积分榜
+            leaderboardData.sort((a, b) => b.score - a.score);
+            
+            // 填充表格
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+            
+            leaderboardData.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.className = index < 3 ? `rank-${index + 1}` : '';
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${entry.player || '匿名玩家'}</td>
+                    <td>${entry.score}</td>
+                    <td>${entry.level}</td>
+                    <td>${new Date(entry.date).toLocaleDateString()}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            panel.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        // 隐藏积分榜
+        function hideLeaderboard() {
+            const panel = document.getElementById('leaderboardPanel');
+            const overlay = document.getElementById('leaderboardOverlay');
+            
+            panel.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
+        // 添加到积分榜
+        function addToLeaderboard(score, level) {
+            const entry = {
+                player: '玩家' + Math.floor(Math.random() * 1000),
+                score: score,
+                level: level,
+                date: new Date().toISOString()
+            };
+            
+            leaderboardData.push(entry);
+            leaderboardData.sort((a, b) => b.score - a.score);
+            
+            // 只保留前50名
+            if (leaderboardData.length > 50) {
+                leaderboardData = leaderboardData.slice(0, 50);
+            }
+            
+            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboardData));
+        }
+
+        // 游戏结束
+        function gameOver() {
+            isGameOver = true;
+            isGameRunning = false;
+            clearInterval(gameLoop);
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('snakeHighScore', highScore);
+                document.getElementById('highScore').textContent = highScore;
+            }
+            
+            // 添加到积分榜
+            addToLeaderboard(score, level);
+            
+            const gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalHighScore').textContent = highScore;
+            document.getElementById('finalLevel').textContent = level;
+            document.getElementById('gameTime').textContent = gameTime + '秒';
+            
+            document.getElementById('gameOverOverlay').style.display = 'block';
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('restartBtn').disabled = false;
+            document.getElementById('startBtn').textContent = '开始游戏';
+        }
 
         // 初始化游戏
         initGame();
