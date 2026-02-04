@@ -15,78 +15,96 @@
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
         }
 
-        .container {
+        .main-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 40px);
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 40px;
-            max-width: 800px;
-            width: 100%;
+            overflow: hidden;
         }
 
-        h1 {
-            text-align: center;
-            color: #333;
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h1 {
+            color: white;
+            font-size: 28px;
             margin-bottom: 10px;
-        }
-
-        p.subtitle {
             text-align: center;
-            color: #666;
-            margin-bottom: 40px;
         }
 
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+        .sidebar p {
+            color: rgba(255,255,255,0.8);
+            text-align: center;
             margin-bottom: 30px;
-        }
-
-        .game-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 3px solid transparent;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border-color: #667eea;
-        }
-
-        .game-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-        }
-
-        .game-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .game-desc {
-            color: #666;
             font-size: 14px;
         }
 
-        .game-viewer {
+        .game-list {
+            list-style: none;
+            flex: 1;
+        }
+
+        .game-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .game-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .game-item.active {
+            background: rgba(255,255,255,0.3);
+            border-left: 4px solid white;
+        }
+
+        .game-item-icon {
+            font-size: 32px;
+            margin-right: 15px;
+        }
+
+        .game-item-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .game-item-info p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* 右侧内容区 */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            min-height: 400px;
+        }
+
+        .game-viewer {
+            flex: 1;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -94,20 +112,29 @@
         }
 
         .game-viewer h2 {
-            margin-bottom: 20px;
             color: #333;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        .game-viewer p {
+            color: #666;
+            font-size: 16px;
         }
 
         .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
             background: #667eea;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            margin-bottom: 20px;
             transition: background 0.3s;
+            z-index: 100;
         }
 
         .back-btn:hover {
@@ -121,93 +148,201 @@
             background: #ff6b6b;
             color: white;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             cursor: pointer;
             font-size: 24px;
-            line-height: 40px;
+            line-height: 50px;
             text-align: center;
+            transition: background 0.3s;
+            z-index: 100;
         }
 
         .close-btn:hover {
             background: #ee5a5a;
         }
 
-        @media (max-width: 600px) {
-            .container {
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100vh - 40px);
+            }
+
+            .sidebar {
+                width: 100%;
                 padding: 20px;
             }
 
-            .game-grid {
-                grid-template-columns: 1fr;
+            .sidebar h1 {
+                font-size: 22px;
+            }
+
+            .game-list {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .game-item {
+                flex-direction: column;
+                padding: 15px 10px;
+                text-align: center;
+            }
+
+            .game-item-icon {
+                font-size: 24px;
+                margin-right: 0;
+                margin-bottom: 8px;
+            }
+
+            .game-item-info h3 {
+                font-size: 14px;
+            }
+
+            .game-item-info p {
+                font-size: 10px;
+            }
+
+            iframe {
+                height: 600px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-list {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎮 小游戏合集</h1>
-        <p class="subtitle">选择一个游戏开始游玩</p>
+    <div class="main-container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <h1>🎮 小游戏合集</h1>
+            <p>点击选择游戏开始游玩</p>
 
-        <div class="game-grid" id="gameGrid">
-            <div class="game-card" onclick="showGame('snake')">
-                <div class="game-icon">🐍</div>
-                <div class="game-title">贪吃蛇</div>
-                <div class="game-desc">经典街机游戏，控制蛇吃食物变长</div>
-            </div>
+            <ul class="game-list">
+                <li class="game-item active" onclick="showGame('snake')">
+                    <span class="game-item-icon">🐍</span>
+                    <div class="game-item-info">
+                        <h3>贪吃蛇</h3>
+                        <p>经典街机游戏</p>
+                    </div>
+                </li>
 
-            <div class="game-card" onclick="showGame('gomoku')">
-                <div class="game-icon">⚫⚪</div>
-                <div class="game-title">五子棋</div>
-                <div class="game-desc">经典策略游戏，先连成5子者胜</div>
-            </div>
+                <li class="game-item" onclick="showGame('gomoku')">
+                    <span class="game-item-icon">⚫⚪</span>
+                    <div class="game-item-info">
+                        <h3>五子棋</h3>
+                        <p>经典策略游戏</p>
+                    </div>
+                </li>
 
-            <div class="game-card" onclick="showGame('sudoku')">
-                <div class="game-icon">🔢</div>
-                <div class="game-title">数独</div>
-                <div class="game-desc">逻辑推理游戏，填满数字网格</div>
-            </div>
+                <li class="game-item" onclick="showGame('sudoku')">
+                    <span class="game-item-icon">🔢</span>
+                    <div class="game-item-info">
+                        <h3>数独</h3>
+                        <p>逻辑推理游戏</p>
+                    </div>
+                </li>
+            </ul>
         </div>
 
-        <div class="game-viewer" id="gameViewer">
-            <h2>欢迎来到小游戏合集！</h2>
-            <p>点击上方卡片选择游戏开始游玩</p>
+        <!-- 右侧内容区 -->
+        <div class="content-area">
+            <div class="game-viewer" id="gameViewer">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎮</div>
+                    <h2>欢迎来到小游戏合集</h2>
+                    <p>点击左侧导航栏选择游戏开始游玩</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         function showGame(gameName) {
             const viewer = document.getElementById('gameViewer');
-            viewer.innerHTML = `<button class="close-btn" onclick="hideGame()">×</button>`;
-            
+            const gameItems = document.querySelectorAll('.game-item');
+
+            // 更新导航栏选中状态
+            gameItems.forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // 显示游戏
+            viewer.innerHTML = `
+                <button class="back-btn" onclick="showHome()">← 返回菜单</button>
+                <button class="close-btn" onclick="showHome()">×</button>
+            `;
+
             switch(gameName) {
                 case 'snake':
                     viewer.innerHTML += `
-                        <button class="back-btn" onclick="hideGame()">返回</button>
-                        <iframe src="games/snake/snake.html" style="width: 100%; height: 500px; border: none; border-radius: 10px;"></iframe>
+                        <iframe src="games/snake/snake.html"></iframe>
                     `;
                     break;
                 case 'gomoku':
                     viewer.innerHTML += `
-                        <button class="back-btn" onclick="hideGame()">返回</button>
-                        <iframe src="games/gomoku/gomoku.html" style="width: 100%; height: 500px; border: none; border-radius: 10px;"></iframe>
+                        <iframe src="games/gomoku/gomoku.html"></iframe>
                     `;
                     break;
                 case 'sudoku':
                     viewer.innerHTML += `
-                        <button class="back-btn" onclick="hideGame()">返回</button>
-                        <iframe src="games/sudoku/sudoku.html" style="width: 100%; height: 500px; border: none; border-radius: 10px;"></iframe>
+                        <iframe src="games/sudoku/sudoku.html"></iframe>
                     `;
                     break;
             }
         }
 
-        function hideGame() {
+        function showHome() {
             const viewer = document.getElementById('gameViewer');
+            const gameItems = document.querySelectorAll('.game-item');
+
+            // 清除导航栏选中状态
+            gameItems.forEach(item => item.classList.remove('active'));
+
+            // 显示首页
             viewer.innerHTML = `
-                <h2>欢迎来到小游戏合集！</h2>
-                <p>点击上方卡片选择游戏开始游玩</p>
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎮</div>
+                    <h2>欢迎来到小游戏合集</h2>
+                    <p>点击左侧导航栏选择游戏开始游玩</p>
+                </div>
             `;
         }
     </script>
