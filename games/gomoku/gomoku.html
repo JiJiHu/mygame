@@ -174,7 +174,7 @@
             </select>
         </div>
 
-        <canvas id="gameCanvas" width="500" height="500"></canvas>
+        <div class="mode-selector" id="difficultySelector" style="display:none;margin-top:10px;"> <label>AI难度:</label> <select id="aiDifficulty" onchange="changeDifficulty()"> <option value="easy">简单</option> <option value="medium" selected>中等</option> <option value="hard">困难</option> </select> </div> <canvas id="gameCanvas" width="500" height="500"></canvas>
 
         <div class="controls">
             <p>点击棋盘落子</p>
@@ -199,7 +199,7 @@
         let currentPlayer = 1;
         let gameOver = false;
         let gameMode = 'pvp';
-        let isPVE = false;
+        let isPVE = false; let aiDifficulty = 'medium'; const aiConfig = { easy: { attack: 0.3, defense: 0.8, random: 0.4 }, medium: { attack: 0.7, defense: 0.9, random: 0.1 }, hard: { attack: 1.0, defense: 1.0, random: 0 } };
 
         function initBoard() {
             board = [];
@@ -506,7 +506,7 @@
             }
 
             // AI倾向于阻止玩家1并创造自己的机会
-            return score2 + score1 / 2;
+            const conf = aiConfig[aiDifficulty]; let finalScore = score2 * conf.attack + score1 * conf.defense; if (conf.random > 0 && Math.random() < conf.random) finalScore += (Math.random() - 0.5) * 200; return finalScore;
         }
 
         function showGameOver(winner) {
@@ -515,10 +515,12 @@
             document.getElementById('gameOver').style.display = 'block';
         }
 
-        function resetGame() {
+        function changeDifficulty() { aiDifficulty = document.getElementById('aiDifficulty').value; }
+
+ function resetGame() {
             gameOver = false;
             currentPlayer = 1;
-            isPVE = gameMode === 'pve';
+            isPVE = gameMode === 'pve'; const ds = document.getElementById('difficultySelector'); if(ds) ds.style.display = isPVE ? 'block' : 'none';
             initBoard();
             drawBoard();
             updatePlayerInfo();
