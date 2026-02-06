@@ -379,30 +379,48 @@ function initGrid() {
   ];
   let grid = base.map(row => [...row]);
   const rand = (n) => Math.floor(Math.random() * n);
-  const mapping = {}; const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
-  for(let i=0;i<9;i++) mapping[i+1]=nums[i];
-  for(let i=0;i<9;i++) for(let j=0;j<9;j++) grid[i][j]=mapping[grid[i][j]];
-  for(let box=0;box<3;box++){
-    const r1=box*3+rand(3), r2=box*3+rand(3);
-    [grid[r1],grid[r2]]=[grid[r2],grid[r1]];
-  }
-  for(let box=0;box<3;box++){
-    const c1=box*3+rand(3), c2=box*3+rand(3);
-    for(let r=0;r<9;r++) [grid[r][c1],grid[r][c2]]=[grid[r][c2],grid[r][c1]];
-  }
-  const blockOrder=[[0,1,2],[1,0,2],[2,1,0]][rand(3)];
-  const newGrid=[];
-  for(let b of blockOrder) for(let i=0;i<3;i++) newGrid.push(grid[b*3+i]);
-  solution=newGrid;
-}
+  const mapping = {};
+  const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
 
-function countOccurrences(arr) {
-            const counts = {};
-            for (let num of arr) {
-                counts[num] = (counts[num] || 0) + 1;
-            }
-            return counts;
-        }
+  // 数字映射
+  for(let i = 0; i < 9; i++) {
+    mapping[i + 1] = nums[i];
+  }
+
+  // 应用数字映射
+  for(let i = 0; i < 9; i++) {
+    for(let j = 0; j < 9; j++) {
+      grid[i][j] = mapping[grid[i][j]];
+    }
+  }
+
+  // 随机交换行（在每个3x3宫内）
+  for(let box = 0; box < 3; box++) {
+    const r1 = box * 3 + rand(3);
+    const r2 = box * 3 + rand(3);
+    [grid[r1], grid[r2]] = [grid[r2], grid[r1]];
+  }
+
+  // 随机交换列（在每个3x3宫内）
+  for(let box = 0; box < 3; box++) {
+    const c1 = box * 3 + rand(3);
+    const c2 = box * 3 + rand(3);
+    for(let r = 0; r < 9; r++) {
+      [grid[r][c1], grid[r][c2]] = [grid[r][c2], grid[r][c1]];
+    }
+  }
+
+  // 随机交换3x3宫
+  const blockOrder = [[0, 1, 2], [1, 0, 2], [2, 1, 0]][rand(3)];
+  const newGrid = [];
+  for(let b of blockOrder) {
+    for(let i = 0; i < 3; i++) {
+      newGrid.push(grid[b * 3 + i]);
+    }
+  }
+
+  solution = newGrid;
+}
 
         function isValidPlacement(grid, row, col, num) {
             // 检查行

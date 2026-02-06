@@ -199,7 +199,15 @@
         let currentPlayer = 1;
         let gameOver = false;
         let gameMode = 'pvp';
-        let isPVE = false; let aiDifficulty = 'medium'; const aiConfig = { easy: { attack: 0.3, defense: 0.8, random: 0.4 }, medium: { attack: 0.7, defense: 0.9, random: 0.1 }, hard: { attack: 1.0, defense: 1.0, random: 0 } };
+        let isPVE = false;
+        let aiDifficulty = 'medium';
+        let aiThinking = false;
+
+        const aiConfig = {
+            easy: { attack: 0.3, defense: 0.8, random: 0.4 },
+            medium: { attack: 0.7, defense: 0.9, random: 0.1 },
+            hard: { attack: 1.0, defense: 1.0, random: 0 }
+        };
 
         function initBoard() {
             board = [];
@@ -367,34 +375,43 @@
         }
 
         function aiMove() {
-            if (gameOver) return;
+            if (gameOver || aiThinking) return;
 
-            // 简单AI：寻找最佳位置
-            let bestScore = -Infinity;
-            let bestMove = null;
+            aiThinking = true;
 
-            // 获取所有空位
-            const emptySpots = [];
-            for (let i = 0; i < boardSize; i++) {
-                for (let j = 0; j < boardSize; j++) {
-                    if (board[i][j] === 0) {
-                        emptySpots.push({x: i, y: j});
+            // AI思考延迟（500-1000ms模拟思考）
+            const thinkDelay = 500 + Math.random() * 500;
+
+            setTimeout(() => {
+                // 简单AI：寻找最佳位置
+                let bestScore = -Infinity;
+                let bestMove = null;
+
+                // 获取所有空位
+                const emptySpots = [];
+                for (let i = 0; i < boardSize; i++) {
+                    for (let j = 0; j < boardSize; j++) {
+                        if (board[i][j] === 0) {
+                            emptySpots.push({x: i, y: j});
+                        }
                     }
                 }
-            }
 
-            // 评估每个空位
-            for (let spot of emptySpots) {
-                const score = evaluateSpot(spot.x, spot.y);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMove = spot;
+                // 评估每个空位
+                for (let spot of emptySpots) {
+                    const score = evaluateSpot(spot.x, spot.y);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = spot;
+                    }
                 }
-            }
 
-            if (bestMove) {
-                makeMove(bestMove.x, bestMove.y);
-            }
+                if (bestMove) {
+                    makeMove(bestMove.x, bestMove.y);
+                }
+
+                aiThinking = false;
+            }, thinkDelay);
         }
 
         function evaluateSpot(x, y) {
@@ -520,6 +537,7 @@
  function resetGame() {
             gameOver = false;
             currentPlayer = 1;
+            aiThinking = false;
             isPVE = gameMode === 'pve'; const ds = document.getElementById('difficultySelector'); if(ds) ds.style.display = isPVE ? 'block' : 'none';
             initBoard();
             drawBoard();
