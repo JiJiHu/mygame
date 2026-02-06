@@ -1,0 +1,489 @@
+/* ====================================
+   🏴‍☠ 海贼王主页主题
+   One Piece Homepage Theme - Rich Adventure Landing
+   ==================================== */
+
+/* 继承基础主题 */
+@import url('./onepiece-theme.css');
+
+/* 主页特有的丰富背景 */
+body {
+    background: linear-gradient(180deg,
+        var(--onepiece-ocean-deep) 0%,
+        var(--onepiece-ocean-mid) 40%,
+        var(--onepiece-sand) 95%,
+        var(--onepiece-sand) 100%
+    );
+    overflow-x: hidden;
+}
+
+/* 海浪层 */
+.ocean-waves {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.wave {
+    position: absolute;
+    bottom: 0;
+    width: 200%;
+    height: 100%;
+    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg"><path fill="%23006699" fill-opacity="0.5" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
+    background-size: 50% 100%;
+    animation: wave 15s linear infinite;
+}
+
+.wave:nth-child(2) {
+    bottom: 10px;
+    opacity: 0.5;
+    animation: wave 12s linear reverse infinite;
+}
+
+.wave:nth-child(3) {
+    bottom: 20px;
+    opacity: 0.3;
+    animation: wave 18s linear infinite;
+}
+
+@keyframes wave {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* 海盗船容器 */
+.pirate-ship-container {
+    position: fixed;
+    bottom: 80px;
+    right: 10%;
+    z-index: 1;
+    animation: shipFloat 6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes shipFloat {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-20px) rotate(2deg); }
+}
+
+/* 主容器 */
+.main-hero {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+}
+
+/* 英雄区域 */
+.hero-section {
+    text-align: center;
+    margin-bottom: 80px;
+    animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-title {
+    font-size: 64px;
+    font-weight: bold;
+    color: var(--onepiece-gold);
+    text-shadow:
+        3px 3px 6px rgba(0,0,0,0.5),
+        0 0 40px rgba(212, 175, 55, 0.3);
+    margin-bottom: 20px;
+    letter-spacing: 4px;
+    animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from {
+        text-shadow:
+            3px 3px 6px rgba(0,0,0,0.5),
+            0 0 20px rgba(212, 175, 55, 0.3);
+    }
+    to {
+        text-shadow:
+            3px 3px 6px rgba(0,0,0,0.5),
+            0 0 40px rgba(212, 175, 55, 0.6);
+    }
+}
+
+.hero-subtitle {
+    font-size: 28px;
+    color: var(--onepiece-cream);
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hero-welcome {
+    font-size: 20px;
+    color: rgba(255,255,255,0.9);
+    max-width: 600px;
+    line-height: 1.8;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    margin: 0 auto 20px;
+}
+
+/* 游戏卡片区域 */
+.games-section {
+    width: 100%;
+    max-width: 1400px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    padding: 20px;
+}
+
+.game-card {
+    background: linear-gradient(145deg, rgba(245, 230, 211, 0.95), rgba(250, 243, 224, 0.95));
+    border: 6px solid var(--onepiece-wood);
+    border-radius: 20px;
+    padding: 30px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.3),
+        inset 0 2px 10px rgba(212, 175, 55, 0.1);
+}
+
+.game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg,
+        var(--onepiece-gold),
+        var(--onepiece-wood),
+        var(--onepiece-gold)
+    );
+}
+
+.game-card::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border: 2px dashed var(--onepiece-gold);
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.game-card:hover {
+    transform: translateY(-15px) scale(1.02);
+    box-shadow:
+        0 20px 50px rgba(0,0,0,0.4),
+        0 0 0 4px var(--onepiece-gold),
+        inset 0 2px 15px rgba(212, 175, 55, 0.2);
+}
+
+.game-card:hover::after {
+    opacity: 0.5;
+}
+
+/* 卡片钉子装饰 */
+.game-card .corner-nail {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--onepiece-gold);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.game-card .corner-nail:nth-child(1) { top: 15px; left: 15px; }
+.game-card .corner-nail:nth-child(2) { top: 15px; right: 15px; }
+.game-card .corner-nail:nth-child(3) { bottom: 15px; left: 15px; }
+.game-card .corner-nail:nth-child(4) { bottom: 15px; right: 15px; }
+
+.game-card-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: iconBounce 3s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.game-card:nth-child(2) .game-card-icon {
+    animation-delay: 0.5s;
+}
+
+.game-card:nth-child(3) .game-card-icon {
+    animation-delay: 1s;
+}
+
+.game-card-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--onepiece-black);
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.game-card-desc {
+    font-size: 16px;
+    color: var(--onepiece-wood-dark);
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.game-card-stats {
+    display: flex;
+    justify-content: space-around;
+    background: var(--onepiece-ocean-lightest);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid var(--onepiece-gold);
+}
+
+.game-stat {
+    text-align: center;
+}
+
+.game-stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--onepiece-ocean-deep);
+}
+
+.game-stat-label {
+    font-size: 12px;
+    color: var(--onepiece-wood-dark);
+    text-transform: uppercase;
+}
+
+/* 热门标签 */
+.game-card .hot-badge {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    background: linear-gradient(145deg, var(--onepiece-red), var(--onepiece-red-dark));
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow:
+        0 3px 10px rgba(0,0,0,0.3),
+        0 0 0 2px var(--onepiece-black);
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* 底部信息 */
+.footer-section {
+    margin-top: 80px;
+    color: var(--onepiece-cream);
+    text-align: center;
+    padding: 40px;
+    background: linear-gradient(180deg,
+        rgba(0, 51, 102, 0.8),
+        rgba(0, 102, 153, 0.8)
+    );
+    border-radius: 20px;
+    border: 3px solid var(--onepiece-gold);
+    backdrop-filter: blur(10px);
+}
+
+.footer-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.footer-text {
+    font-size: 16px;
+    opacity: 0.9;
+    line-height: 1.8;
+}
+
+/* 玩按钮样式 */
+.play-button {
+    display: inline-block;
+    background: linear-gradient(145deg, var(--onepiece-gold), var(--onepiece-gold-light));
+    color: var(--onepiece-black);
+    padding: 15px 40px;
+    border-radius: 30px;
+    font-size: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-decoration: none;
+    box-shadow:
+        0 5px 15px rgba(0,0,0,0.3),
+        inset 0 2px 5px rgba(255,255,255,0.3);
+    transition: all 0.3s;
+    margin-top: 15px;
+}
+
+.play-button:hover {
+    background: linear-gradient(145deg, var(--onepiece-gold-light), var(--onepiece-gold));
+    transform: translateY(-3px);
+    box-shadow:
+        0 8px 25px rgba(0,0,0,0.4),
+        inset 0 2px 5px rgba(255,255,255,0.4);
+}
+
+/* 罗盘装饰元素 */
+.compass-decoration {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle,
+        var(--onepiece-gold) 0%,
+        var(--onepiece-wood) 70%,
+        var(--onepiece-black) 100%
+    );
+    border-radius: 50%;
+    border: 4px solid var(--onepiece-black);
+    box-shadow:
+        0 5px 20px rgba(0,0,0,0.4),
+        inset 0 2px 10px rgba(255,255,255,0.2);
+    z-index: 5;
+    animation: compassSpin 30s linear infinite;
+}
+
+@keyframes compassSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.compass-needle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 35px;
+    background: var(--onepiece-red);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.compass-needle::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    width: 4px;
+    height: 20px;
+    background: white;
+    transform: translateX(-50%);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 36px;
+        letter-spacing: 2px;
+    }
+
+    .hero-subtitle {
+        font-size: 20px;
+    }
+
+    .hero-welcome {
+        font-size: 16px;
+    }
+
+    .games-section {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 10px;
+    }
+
+    .game-card {
+        padding: 20px;
+    }
+
+    .game-card-icon {
+        font-size: 60px;
+    }
+
+    .game-card-title {
+        font-size: 24px;
+    }
+
+    .compass-decoration {
+        width: 50px;
+        height: 50px;
+        top: 20px;
+        right: 20px;
+    }
+
+    .pirate-ship-container {
+        transform: scale(0.5);
+        right: 20px;
+    }
+}
+
+/* 漂浮的宝藏元素 */
+.treasure-element {
+    position: fixed;
+    z-index: 2;
+    opacity: 0.6;
+    pointer-events: none;
+    animation: treasureFloat 20s ease-in-out infinite;
+}
+
+.treasure-element:nth-child(1) {
+    top: 20%;
+    left: 10%;
+    font-size: 30px;
+    animation-delay: 0s;
+}
+
+.treasure-element:nth-child(2) {
+    top: 40%;
+    right: 15%;
+    font-size: 25px;
+    animation-delay: -5s;
+}
+
+.treasure-element:nth-child(3) {
+    bottom: 30%;
+    left: 20%;
+    font-size: 28px;
+    animation-delay: -10s;
+}
+
+@keyframes treasureFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-30px) rotate(10deg);
+    }
+}
