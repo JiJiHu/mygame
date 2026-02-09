@@ -49,6 +49,7 @@
             gap: 20px;
             flex-wrap: wrap;
             justify-content: center;
+            width: 100%;
         }
 
         .sudoku-grid {
@@ -56,8 +57,8 @@
             grid-template-columns: repeat(9, 1fr);
             gap: 0;
             border: 4px solid var(--onepiece-black);
-            width: 450px;
-            height: 450px;
+            width: 500px;
+            height: 500px;
             background: var(--onepiece-cream);
             box-shadow:
                 0 8px 20px rgba(0,0,0,0.3),
@@ -324,7 +325,7 @@
         <p>用时: <span id="finalTime">00:00</span></p>
         <p>错误: <span id="finalErrors">0</span> 次</p>
         <p>难度: <span id="finalDifficulty">简单</span></p>
-        
+
         <div id="nameInputSection">
             <input type="text" id="playerName" placeholder="输入你的名字" maxlength="10"
                    style="padding: 10px; font-size: 16px; border: 2px solid var(--onepiece-gold); border-radius: 5px; margin: 10px 0; width: 200px;">
@@ -332,14 +333,14 @@
             <button onclick="saveScore()">保存成绩</button>
             <button onclick="hideNameInput()">跳过</button>
         </div>
-        
+
         <div id="leaderboardSection" style="display: none; margin-top: 15px; text-align: left;">
             <h3 style="color: var(--onepiece-ocean-deep); margin-bottom: 10px;">🏆 排行榜</h3>
             <div id="leaderboardList" style="max-height: 200px; overflow-y: auto; background: var(--onepiece-cream); padding: 10px; border-radius: 5px; border: 2px solid var(--onepiece-gold);">
                 <!-- 排行榜内容 -->
             </div>
         </div>
-        
+
         <button onclick="restartGame()" style="margin-top: 15px;">再来一局</button>
         <button onclick="goBackHome()" style="margin-top: 10px; background: linear-gradient(145deg, var(--onepiece-ocean-mid), var(--onepiece-ocean-deep));">返回主页</button>
     </div>
@@ -734,7 +735,7 @@ function checkSolution() {
 
             document.getElementById('gameOverOverlay').style.display = 'block';
             document.getElementById('gameOver').style.display = 'block';
-            
+
             // 显示名字输入框
             document.getElementById('nameInputSection').style.display = 'block';
             document.getElementById('leaderboardSection').style.display = 'none';
@@ -825,15 +826,15 @@ function checkSolution() {
 
             let leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard') || '[]');
             leaderboard.push(score);
-            
+
             // 按用时短优先排序
             leaderboard.sort((a, b) => a.time - b.time);
-            
+
             // 只保留前10名
             leaderboard = leaderboard.slice(0, 10);
-            
+
             localStorage.setItem('sudokuLeaderboard', JSON.stringify(leaderboard));
-            
+
             hideNameInput();
             displayLeaderboard();
         }
@@ -848,7 +849,8 @@ function checkSolution() {
         function displayLeaderboard() {
             const leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard') || '[]');
             const leaderboardList = document.getElementById('leaderboardList');
-            
+            const leaderboardSection = document.getElementById('leaderboardSection');
+
             if (leaderboard.length === 0) {
                 leaderboardList.innerHTML = '<p style="text-align: center; color: #666;">暂无记录，快来创造第一个记录吧！</p>';
             } else {
@@ -858,13 +860,13 @@ function checkSolution() {
                     const seconds = (score.time % 60).toString().padStart(2, '0');
                     const medals = ['🥇', '🥈', '🥉'];
                     const medal = index < 3 ? medals[index] : `${index + 1}.`;
-                    
+
                     const diffText = {
                         'easy': '简单',
                         'medium': '中等',
                         'hard': '困难'
                     }[score.difficulty];
-                    
+
                     html += `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; border-bottom: 1px solid #ddd;">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -881,13 +883,16 @@ function checkSolution() {
                         </div>
                     `;
                 });
-                
+
                 leaderboardList.innerHTML = html;
             }
 
-            document.getElementById('leaderboardSection').style.display = 'block';
+            console.log('Showing leaderboard');
+            leaderboardSection.style.display = 'block';
+            console.log('leaderboardSection display:', leaderboardSection.style.display);
+
             document.getElementById('finalErrors').textContent = errors;
-            
+
             const diffText = {
                 'easy': '简单',
                 'medium': '中等',
