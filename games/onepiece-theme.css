@@ -1,0 +1,339 @@
+/* ====================================
+   🏴‍☠️ 海贼王主题 CSS
+   One Piece Theme - Navigational Adventure Style
+   ==================================== */
+
+/* 色彩系统 - 海洋与宝藏 */
+:root {
+    /* 海洋色系 */
+    --onepiece-ocean-deep: #003366;
+    --onepiece-ocean-mid: #006699;
+    --onepiece-ocean-light: #4da6ff;
+    --onepiece-ocean-lightest: #e6f3ff;
+
+    /* 大海草绿 */
+    --onepiece-seagreen: #2d5a27;
+
+    /* 沙滩与地图 */
+    --onepiece-sand: #f4d03f;
+    --onepaper-old: #f5e6d3;
+    --onepiece-cream: #faf3e0;
+
+    /* 金属色 */
+    --onepiece-gold: #d4af37;
+    --onepiece-gold-light: #ffd700;
+    --onepiece-silver: #c0c0c0;
+
+    /* 海贼旗帜色 */
+    --onepiece-black: #1a1a1a;
+    --onepiece-red: #cc0000;
+    --onepiece-red-dark: #8b0000;
+
+    /* 木质甲板 */
+    --onepiece-wood: #8b4513;
+    --onepiece-wood-light: #cd853f;
+    --onepiece-wood-dark: #654321;
+
+    /* 海贼帽 */
+    --onepiece-straw: #ffc34d;
+    --onepiece-straw-dark: #e6a626;
+}
+
+/* 全局样式 */
+body {
+    background: linear-gradient(135deg, var(--onepiece-ocean-deep) 0%, var(--onepiece-ocean-mid) 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* 海洋波浪背景动画 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(circle at 20% 80%, var(--onepiece-ocean-light) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, var(--onepiece-ocean-lightest) 0%, transparent 50%);
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* 游戏容器 - 宝藏箱风格 */
+.game-container {
+    background: linear-gradient(145deg, var(--onepaper-old), var(--onepiece-cream));
+    border: 8px solid var(--onepiece-wood);
+    border-radius: 15px;
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.4),
+        inset 0 2px 10px rgba(212, 175, 55, 0.2),
+        0 0 0 3px var(--onepiece-gold);
+    position: relative;
+    z-index: 1;
+}
+
+/* 装饰性钉子效果 */
+.game-container::before,
+.game-container::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--onepiece-gold);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.game-container::before {
+    top: 15px;
+    left: 15px;
+}
+
+.game-container::after {
+    top: 15px;
+    right: 15px;
+}
+
+.game-container-bottom-nails::before,
+.game-container-bottom-nails::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--onepiece-gold);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.game-container-bottom-nails::before {
+    bottom: 15px;
+    left: 15px;
+}
+
+.game-container-bottom-nails::after {
+    bottom: 15px;
+    right: 15px;
+}
+
+/* 标题样式 */
+h1 {
+    color: var(--onepiece-black);
+    text-shadow:
+        2px 2px 4px rgba(0,0,0,0.3),
+        0 0 20px var(--onepiece-gold);
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* 按钮风格 - 海贼元素 */
+button {
+    background: linear-gradient(145deg, var(--onepiece-gold), var(--onepiece-gold-light));
+    color: var(--onepiece-black);
+    border: 3px solid var(--onepiece-wood);
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow:
+        0 4px 8px rgba(0,0,0,0.2),
+        inset 0 2px 4px rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: linear-gradient(145deg, var(--onepiece-gold-light), var(--onepiece-gold));
+    transform: translateY(-2px);
+    box-shadow:
+        0 6px 12px rgba(0,0,0,0.3),
+        inset 0 2px 4px rgba(255,255,255,0.4);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow:
+        0 2px 4px rgba(0,0,0,0.2),
+        inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+button.restart-btn {
+    background: linear-gradient(145deg, var(--onepiece-red), var(--onepiece-red-dark));
+    color: white;
+    border-color: var(--onepiece-black);
+}
+
+button.hint-btn {
+    background: linear-gradient(145deg, var(--onepiece-seagreen), #1e3d1a);
+    color: white;
+    border-color: var(--onepiece-wood);
+}
+
+button.check-btn {
+    background: linear-gradient(145deg, var(--onepiece-ocean-mid), var(--onepiece-ocean-deep));
+    color: white;
+    border-color: var(--onepiece-ocean-deep);
+}
+
+button.erase {
+    background: linear-gradient(145deg, #ff4444, #cc0000);
+}
+
+/* 数字按钮风格 */
+.numpad button {
+    background: linear-gradient(145deg, var(--onepiece-ocean-light), var(--onepiece-ocean-mid));
+    color: white;
+    border: 3px solid var(--onepiece-ocean-deep);
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.numpad button:hover {
+    background: linear-gradient(145deg, var(--onepiece-ocean-mid), var(--onepiece-ocean-deep));
+}
+
+/* 数独格子 - 地图纸风格 */
+.sudoku-cell {
+    background: var(--onepiece-cream);
+    border-color: #d4c4a8;
+    color: var(--onepiece-black);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sudoku-cell.fixed {
+    background: linear-gradient(145deg, #e8e0d5, #d9d0c5);
+    color: var(--onepiece-wood-dark);
+    font-weight: 900;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.sudoku-cell.selected {
+    background: linear-gradient(145deg, var(--onepiece-gold), var(--onepiece-gold-light)) !important;
+    color: var(--onepiece-black) !important;
+    box-shadow:
+        inset 0 2px 4px rgba(0,0,0,0.2),
+        0 0 15px rgba(212, 175, 55, 0.5);
+}
+
+.sudoku-cell.highlight {
+    background: var(--onepiece-ocean-lightest) !important;
+}
+
+.sudoku-cell.error {
+    background: linear-gradient(145deg, #ffcccc, #ff9999) !important;
+    color: var(--onepiece-red-dark) !important;
+    animation: shake 0.5s ease-in-out;
+}
+
+/* 错误抖动动画 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* 网格边界 */
+.sudoku-cell:nth-child(3n) {
+    border-right: 3px solid var(--onepiece-wood);
+}
+
+.sudoku-cell:nth-child(n+19):nth-child(-n+27),
+.sudoku-cell:nth-child(n+46):nth-child(-n+54) {
+    border-bottom: 3px solid var(--onepiece-wood);
+}
+
+/* 难度选择器 */
+.difficulty-selector select {
+    background: var(--onepiece-cream);
+    border: 3px solid var(--onepiece-wood);
+    color: var(--onepiece-black);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* 统计信息 */
+.game-info {
+    background: linear-gradient(145deg, var(--onepiece-ocean-lightest), var(--onepiece-cream));
+    border: 3px solid var(--onepiece-gold);
+    border-radius: 10px;
+    color: var(--onepiece-black);
+}
+
+.stat-value {
+    color: var(--onepiece-ocean-deep);
+    font-weight: 900;
+}
+
+/* 游戏结束弹窗 */
+.game-over {
+    background: linear-gradient(145deg, var(--onepaper-old), var(--onepiece-cream));
+    border: 8px solid var(--onepiece-gold);
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.5),
+        0 0 0 4px var(--onepiece-wood);
+}
+
+.game-over h2 {
+    color: var(--onepiece-ocean-deep);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 游戏结束遮罩 */
+.game-over-overlay {
+    background: rgba(0, 51, 102, 0.8);
+}
+
+/* 装饰性海贼旗帜图标 */
+.pirate-icon {
+    display: inline-block;
+    margin-right: 8px;
+    animation: bob 2s ease-in-out infinite;
+}
+
+@keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .game-container {
+        border-width: 4px;
+        padding: 15px;
+    }
+
+    .sudoku-grid {
+        width: 320px;
+        height: 320px;
+    }
+
+    .sudoku-cell {
+        width: 35.5px;
+        height: 35.5px;
+        font-size: 18px;
+    }
+
+    .numpad button {
+        font-size: 16px;
+        padding: 12px;
+    }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--onepiece-cream);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--onepiece-gold), var(--onepiece-wood));
+    border-radius: 6px;
+    border: 2px solid var(--onepiece-cream);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--onepiece-gold-light), var(--onepiece-wood-light));
+}

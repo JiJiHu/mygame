@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小游戏合集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 40px);
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h1 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .sidebar p {
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .game-list {
+            list-style: none;
+            flex: 1;
+        }
+
+        .game-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        kbd {
+  font-family: monospace;
+  font-size: 0.9em;
+}
+.game-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .game-item.active {
+            background: rgba(255,255,255,0.3);
+            border-left: 4px solid white;
+        }
+
+        .game-item-icon {
+            font-size: 32px;
+            margin-right: 15px;
+        }
+
+        .game-item-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .game-item-info p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        /* 右侧内容区 */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+        }
+
+        .game-viewer {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-viewer h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        .game-viewer p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: #5568d3;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 50px;
+            text-align: center;
+            transition: background 0.3s;
+            z-index: 100;
+        }
+
+        .close-btn:hover {
+            background: #ee5a5a;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100vh - 40px);
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .sidebar h1 {
+                font-size: 22px;
+            }
+
+            .game-list {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .game-item {
+                flex-direction: column;
+                padding: 15px 10px;
+                text-align: center;
+            }
+
+            .game-item-icon {
+                font-size: 24px;
+                margin-right: 0;
+                margin-bottom: 8px;
+            }
+
+            .game-item-info h3 {
+                font-size: 14px;
+            }
+
+            .game-item-info p {
+                font-size: 10px;
+            }
+
+            iframe {
+                height: 600px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <h1>🎮 小游戏合集</h1>
+            <p>点击选择游戏开始游玩</p>
+
+            <ul class="game-list">
+                <li class="game-item active" onclick="showGame('snake')">
+                    <span class="game-item-icon">🐍</span>
+                    <div class="game-item-info">
+                        <h3>贪吃蛇</h3>
+                        <p>经典街机游戏</p>
+                    </div>
+                </li>
+
+                <li class="game-item" onclick="showGame('gomoku')">
+                    <span class="game-item-icon">⚫⚪</span>
+                    <div class="game-item-info">
+                        <h3>五子棋</h3>
+                        <p>经典策略游戏</p>
+                    </div>
+                </li>
+
+                <li class="game-item" onclick="showGame('sudoku')">
+                    <span class="game-item-icon">🔢</span>
+                    <div class="game-item-info">
+                        <h3>数独</h3>
+                        <p>逻辑推理游戏</p>
+                    </div>
+                </li><li class="game-item" onclick="showHelp()">
+          <span class="game-item-icon">❓</span>
+          <div class="game-item-info">
+            <h3>快捷键帮助</h3>
+            <p>查看所有快捷键</p>
+          </div>
+        </li>
+            </ul>
+        </div>
+
+        <!-- 右侧内容区 -->
+        <div class="content-area">
+            <div class="game-viewer" id="gameViewer">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎮</div>
+                    <h2>欢迎来到小游戏合集</h2>
+                    <p>点击左侧导航栏选择游戏开始游玩</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showGame(gameName) {
+            const viewer = document.getElementById('gameViewer');
+            const gameItems = document.querySelectorAll('.game-item');
+
+            // 更新导航栏选中状态
+            gameItems.forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // 显示游戏
+            viewer.innerHTML = `
+                <button class="back-btn" onclick="showHome()">← 返回菜单</button>
+                <button class="close-btn" onclick="showHome()">×</button>
+            `;
+
+            switch(gameName) {
+                case 'snake':
+                    viewer.innerHTML += `
+                        <iframe src="games/snake/snake.html"></iframe>
+                    `;
+                    break;
+                case 'gomoku':
+                    viewer.innerHTML += `
+                        <iframe src="games/gomoku/gomoku.html"></iframe>
+                    `;
+                    break;
+                case 'sudoku':
+                    viewer.innerHTML += `
+                        <iframe src="games/sudoku/sudoku.html"></iframe>
+                    `;
+                    break;
+            }
+        }
+
+        function showHelp() {
+  const viewer = document.getElementById('gameViewer');
+  viewer.innerHTML = `
+    <button class="back-btn" onclick="showHome()">← 返回</button>
+    <div style="max-width:600px;padding:40px;overflow-y:auto;">
+      <h2 style="color:#667eea;margin-bottom:30px;text-align:center;">⌨️ 快捷键指南</h2>
+      
+      <div style="background:#f8f9fa;padding:20px;border-radius:15px;margin-bottom:20px;">
+        <h3 style="color:#333;margin-bottom:15px;">🐍 贪吃蛇</h3>
+        <ul style="list-style:none;padding:0;color:#666;">
+          <li style="padding:8px 0;border-bottom:1px solid #eee;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">↑ ↓ ← →</kbd> 或 <kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">W A S D</kbd> - 控制方向</li>
+          <li style="padding:8px 0;border-bottom:1px solid #eee;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">Space</kbd> / <kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">P</kbd> - 暂停/继续</li>
+          <li style="padding:8px 0;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">P</kbd> - 暂停游戏</li>
+        </ul>
+      </div>
+      
+      <div style="background:#f8f9fa;padding:20px;border-radius:15px;margin-bottom:20px;">
+        <h3 style="color:#333;margin-bottom:15px;">⚫ 五子棋</h3>
+        <ul style="list-style:none;padding:0;color:#666;">
+          <li style="padding:8px 0;">🖱️ <strong>左键点击</strong> - 落子</li>
+          <li style="padding:8px 0;">🖱️ <strong>鼠标悬停</strong> - 预览落子位置</li>
+        </ul>
+      </div>
+      
+      <div style="background:#f8f9fa;padding:20px;border-radius:15px;">
+        <h3 style="color:#333;margin-bottom:15px;">🔢 数独</h3>
+        <ul style="list-style:none;padding:0;color:#666;">
+          <li style="padding:8px 0;border-bottom:1px solid #eee;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">1-9</kbd> - 填入数字</li>
+          <li style="padding:8px 0;border-bottom:1px solid #eee;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">↑ ↓ ← →</kbd> - 移动光标</li>
+          <li style="padding:8px 0;border-bottom:1px solid #eee;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">Ctrl</kbd> + <kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">Z</kbd> - 撤销上一步</li>
+          <li style="padding:8px 0;border-bottom:1px solid #eee;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">Backspace</kbd> / <kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">Delete</kbd> - 清除格子</li>
+          <li style="padding:8px 0;border-bottom:1px solid #eee;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">P</kbd> - 暂停计时</li>
+          <li style="padding:8px 0;"><kbd style="background:#fff;padding:4px 8px;border-radius:4px;border:1px solid #ddd;">H</kbd> - 显示此帮助</li>
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+function showHome() {
+            const viewer = document.getElementById('gameViewer');
+            const gameItems = document.querySelectorAll('.game-item');
+
+            // 清除导航栏选中状态
+            gameItems.forEach(item => item.classList.remove('active'));
+
+            // 显示首页
+            viewer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎮</div>
+                    <h2>欢迎来到小游戏合集</h2>
+                    <p>点击左侧导航栏选择游戏开始游玩</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

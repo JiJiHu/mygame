@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper 测试用例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #ffd700;
+            padding-bottom: 10px;
+        }
+
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .test-section h2 {
+            color: #ffd700;
+            margin-top: 0;
+        }
+
+        .test-case {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #ffd700;
+            border-radius: 4px;
+        }
+
+        .test-case h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .test-steps {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-pending {
+            background: #ff9800;
+            color: white;
+        }
+
+        .status-pass {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-fail {
+            background: #f44336;
+            color: white;
+        }
+
+        .run-btn {
+            background: #ffd700;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        .run-btn:hover {
+            background: #ff9500;
+        }
+
+        .result-text {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .result-pass {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+        }
+
+        .result-fail {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #f44336;
+        }
+
+        .summary {
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 2px solid #ffd700;
+        }
+
+        .summary h3 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .counter {
+            background: #ffd700;
+            color: #1a1a2e;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 扫雷海战 - 全面测试用例</h1>
+
+    <div class="test-section">
+        <h2>测试控制</h2>
+        <button class="run-btn" onclick="runAllTests()">▶️ 运行所有测试</button>
+        <button class="run-btn" onclick="window.open('minesweeper.html', '_blank')">🔗 打开游戏</button>
+    </div>
+
+    <div class="summary" id="summary">
+        <h3>📊 测试摘要</h3>
+        <div class="summary-stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalTests">10</div>
+                <div class="stat-label">总测试数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="passedTests">0</div>
+                <div class="stat-label">通过</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="failedTests">0</div>
+                <div class="stat-label">失败</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="passRate">0%</div>
+                <div class="stat-label">通过率</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>1. 首次点击安全保证测试</h2>
+        <div class="test-case">
+            <h3>测试1.1: 首次点击安全保证（测试10次）</h3>
+            <p><strong>测试目标:</strong> 验证首次点击永远不会触发水雷</p>
+            <div class="test-steps">测试步骤:
+1. 选择任意难度
+2. 记录当前测试次数: <span class="counter" id="safeClickCount">0</span>/10
+3. 点击任意位置
+4. 重复10次游戏（每次点击不同的初始位置）
+
+预期结果:
+- 所有10次首次点击都不会遇到水雷
+- 首次点击周边区域也不会有水雷
+- 首次点击会翻开至少一个空白区域</div>
+            <button class="run-btn" onclick="incrementSafeClick()">✓ 安全点击（+1）</button>
+            <button class="run-btn" onclick="runTest('safe-click')">▶️ 手动测试</button>
+            <div class="result-text" id="result-safe-click"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 左键点击翻格子测试</h2>
+        <div class="test-case">
+            <h3>测试2.1: 左键点击翻开格子</h3>
+            <p><strong>测试目标:</strong> 验证左键点击正确翻开格子</p>
+            <div class="test-steps">测试步骤:
+1. 开始新游戏
+2. 左键点击已翻开的格子
+3. 左键点击未翻开且未标记的格子
+4. 观察翻开的数字
+
+预期结果:
+- 已翻开的格子不能再次点击
+- 空白格子会递归翻开周围区域
+- 数字格子显示周围水雷数量（1-8）
+- 颜色正确对应数字（蓝色1、绿色2、红色3等）</div>
+            <button class="run-btn" onclick="runTest('left-click')">▶️ 手动测试</button>
+            <div class="result-text" id="result-left-click"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 右键点击标记测试</h2>
+        <div class="test-case">
+            <h3>测试3.1: 右键点击标记水雷</h3>
+            <p><strong>测试目标:</strong> 验证右键标记功能</p>
+            <div class="test-steps">测试步骤:
+1. 开始新游戏
+2. 右键点击未翻开的格子
+3. 再次右键点击取消标记
+
+预期结果:
+- 第一次右键标记为旗帜🚩
+- 水雷计数器递减（显示剩余水雷数）
+- 再次右键取消标记
+- 水雷计数器恢复
+- 已翻开的格子不能标记</div>
+            <button class="run-btn" onclick="runTest('right-click')">▶️ 手动测试</button>
+            <div class="result-text" id="result-right-click"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. 长按标记测试（移动端）</h2>
+        <div class="test-case">
+            <h3>测试4.1: 长按标记（移动端）</h3>
+            <p><strong>测试目标:</strong> 验证移动端长按标记功能</p>
+            <div class="test-steps">测试步骤:
+1. 使用手机或浏览器开发者工具（移动模式）
+2. 长按（约500ms）未翻开的格子
+3. 观察视觉反馈效果
+
+预期结果:
+- 长按约500ms后触发标记
+- 长按时有视觉反馈（缩小+发光）
+- 支持触觉反馈（振动）
+- 短暂点击仍能翻开格子
+- 移动手指时取消长按</div>
+            <button class="run-btn" onclick="runTest('long-press')">▶️ 手动测试</button>
+            <div class="result-text" id="result-long-press"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. 踩雷失败检测测试</h2>
+        <div class="test-case">
+            <h3>测试5.1: 踩雷失败检测</h3>
+            <p><strong>测试目标:</strong> 验证踩雷后的游戏结束判定</p>
+            <div class="test-steps">测试步骤:
+1. 开始新游戏
+2. 通过试探找到并点击水雷位置（或使用已知位置）
+3. 观察游戏状态变化
+
+预期结果:
+- 踩雷的格子显示爆炸动画
+- 显示所有水雷位置
+- 游戏状态设为失败
+- 表情按钮变为 😞
+- 弹出游戏失败弹窗</div>
+            <button class="run-btn" onclick="runTest('mine-hit')">▶️ 手动测试</button>
+            <div class="result-text" id="result-mine-hit"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. 胜利条件检测测试</h2>
+        <div class="test-case">
+            <h3>测试6.1: 胜利条件检测（所有非雷格子翻开）</h3>
+            <p><strong>测试目标:</strong> 验证胜利条件判定</p>
+            <div class="test-steps">测试步骤:
+1. 选择初级难度（容易完成）
+2. 谨慎标记水雷位置
+3. 翻开所有非水雷格子
+4. 观察最后翻开的格子
+
+预期结果:
+- 所有非雷格子被翻开
+- 未标记的水雷自动标记为旗帜
+- 水雷计数器归零（000）
+- 游戏状态设为胜利
+- 表情按钮变为 😎
+- 弹出胜利弹窗
+- 上传分数提示</div>
+            <button class="run-btn" onclick="runTest('win-condition')">▶️ 手动测试</button>
+            <div class="result-text" id="result-win-condition"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>7. 计时器功能测试</h2>
+        <div class="test-case">
+            <h3>测试7.1: 计时器功能（0-999秒）</h3>
+            <p><strong>测试目标:</strong> 验证计时器正确记录游戏时间</p>
+            <div class="test-steps">测试步骤:
+1. 观察初始计时器显示000
+2. 进行首次点击
+3. 等待至少10秒
+4. 观察计时器递增
+5. 继续游戏直到999秒
+
+预期结果:
+- 首次点击后计时器启动
+- 每秒递增1
+- 达到999秒后停止递增
+- 游戏胜利或失败后计时器停止
+- 表情按钮（😊）重置游戏时计时器归零</div>
+            <button class="run-btn" onclick="runTest('timer')">▶️ 手动测试</button>
+            <div class="result-text" id="result-timer"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>8. 雷数计数器更新测试</h2>
+        <div class="test-case">
+            <h3>测试8.1: 雷数计数器更新</h3>
+            <p><strong>测试目标:</strong> 验证剩余水雷计数器正确更新</p>
+            <div class="test-steps">测试步骤:
+1. 选择不同难度观察初始雷数:
+   - 初级: 010
+   - 中级: 040
+   - 高级: 099
+2. 标记一个格子
+3. 取消标记
+4. 游戏胜利时
+
+预期结果:
+- 初始显示正确的总雷数
+- 标记时递减1
+- 取消标记时递增1
+- 胜利时显示000
+- 负数不会显示（最小000）</div>
+            <button class="run-btn" onclick="runTest('mine-counter')">▶️ 手动测试</button>
+            <div class="result-text" id="result-mine-counter"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>9. 难度切换测试</h2>
+        <div class="test-case">
+            <h3>测试9.1: 难度切换（9×9, 16×16, 30×16）</h3>
+            <p><strong>测试目标:</strong> 验证三种难度正确切换</p>
+            <div class="test-steps">测试步骤:
+1. 切换到初级难度（⛵ 初级）
+2. 检查棋盘大小（9×9）和雷数（10）
+3. 切换到中级难度（⚔️ 中级）
+4. 检查棋盘大小（16×16）和雷数（40）
+5. 切换到高级难度（🏴‍☠️ 高级）
+6. 检查棋盘大小（30×16）和雷数（99）
+
+预期结果:
+- 每种难度棋盘大小正确
+- 雷数正确
+- 按钮高亮显示当前难度
+- 游戏状态重置
+- 移动端正确适配显示</div>
+            <button class="run-btn" onclick="runTest('difficulty-switch')">▶️ 手动测试</button>
+            <div class="result-text" id="result-difficulty-switch"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>10. 上传分数功能测试</h2>
+        <div class="test-case">
+            <h3>测试10.1: 上传分数功能</h3>
+            <p><strong>测试目标:</strong> 验证分数上传到排行榜功能</p>
+            <div class="test-steps">测试步骤:
+1. 完成任意难度游戏（胜利）
+2. 在弹出的输入框中输入名字
+3. 测试空值输入：
+4. 测试超长名字（>20字符）
+
+预期结果:
+- 正常名字成功上传并提示
+- 空输入弹出错误提示
+- 超长名字被拒绝
+- 网络错误时显示错误提示
+- 上传后可以在排行榜中看到</div>
+            <button class="run-btn" onclick="runTest('upload-score')">▶️ 手动测试</button>
+            <div class="result-text" id="result-upload-score"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>额外测试项</h2>
+        <div class="test-case">
+            <h3>测试11.1: 返回主页功能</h3>
+            <p><strong>测试目标:</strong> 验证返回主页按钮功能</p>
+            <div class="test-steps">测试步骤:
+1. 点击右上角的×按钮
+2. 验证跳转到主页
+
+预期结果:
+- 正确跳转到 games/index.html
+- 页面加载正常</div>
+            <button class="run-btn" onclick="runTest('back-home')">▶️ 手动测试</button>
+            <div class="result-text" id="result-back-home"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>测试11.2: 游戏结束弹窗返回主页</h3>
+            <p><strong>测试目标:</strong> 验证游戏结束后可以返回主页</p>
+            <div class="test-steps">测试步骤:
+1. 完成或失败一个游戏
+2. 在弹窗中点击"返回主页"按钮
+
+预期结果:
+- 跳转到 games/index.html
+- 页面加载正常</div>
+            <button class="run-btn" onclick="runTest('game-over-back')">▶️ 手动测试</button>
+            <div class="result-text" id="result-game-over-back"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            total: 10,
+            passed: 0,
+            failed: 0
+        };
+
+        let safeClickCount = 0;
+
+        function incrementSafeClick() {
+            safeClickCount++;
+            document.getElementById('safeClickCount').textContent = safeClickCount;
+
+            if (safeClickCount >= 10) {
+                runTest('safe-click');
+            }
+        }
+
+        function runTest(testId) {
+            const resultEl = document.getElementById('result-' + testId);
+
+            // 显示手动测试提示
+            resultEl.style.display = 'block';
+            resultEl.className = 'result-text result-pass';
+            resultEl.innerHTML = '✅ 请按测试步骤在游戏中进行手动测试<br><br>' +
+                '<button class="run-btn" onclick="markTestPassed(\'' + testId + '\')">✓ 通过</button> ' +
+                '<button class="run-btn" onclick="markTestFailed(\'' + testId + '\')">✗ 失败</button>';
+        }
+
+        function markTestPassed(testId) {
+            const resultEl = document.getElementById('result-' + testId);
+            resultEl.className = 'result-text result-pass';
+            resultEl.innerHTML = '✅ 测试已标记为通过';
+
+            testResults.passed++;
+            updateSummary();
+        }
+
+        function markTestFailed(testId) {
+            const resultEl = document.getElementById('result-' + testId);
+            resultEl.className = 'result-text result-fail';
+            resultEl.innerHTML = '❌ 测试已标记为失败<br><br>' +
+                '<textarea placeholder="请描述问题..." rows="3" style="width:100%;margin-top:10px;"></textarea>' +
+                '<button class="run-btn" onclick="markTestPassed(\'' + testId + '\')">✓ 改为通过</button>';
+
+            testResults.failed++;
+            updateSummary();
+        }
+
+        function runAllTests() {
+            // 打开游戏新窗口
+            window.open('minesweeper.html', '_blank');
+
+            // 显示提示
+            alert('游戏已在新窗口中打开\n\n请按照每个测试用例的步骤进行手动测试\n点击"通过"或"失败"标记结果');
+        }
+
+        function updateSummary() {
+            document.getElementById('passedTests').textContent = testResults.passed;
+            document.getElementById('failedTests').textContent = testResults.failed;
+
+            const total = testResults.passed + testResults.failed;
+            const rate = total > 0 ? Math.round((testResults.passed / total) * 100) : 0;
+            document.getElementById('passRate').textContent = rate + '%';
+        }
+    </script>
+</body>
+</html>

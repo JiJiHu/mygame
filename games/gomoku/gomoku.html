@@ -191,6 +191,30 @@
             font-size: 14px;
         }
 
+        .final-stats {
+            margin: 20px 0;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .final-stats div {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .final-stats .label {
+            color: #666;
+        }
+
+        .final-stats .value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
         @media (max-width: 600px) {
             .game-container {
                 padding: 15px;
@@ -258,8 +282,14 @@
     <div class="game-over-overlay" id="gameOverOverlay"></div>
     <div class="game-over" id="gameOver">
         <h2 id="winnerText">游戏结束！</h2>
-        <button onclick="resetGame()">再来一局</button>
-        <button onclick="goBackHome()">返回主页</button>
+        <div class="final-stats">
+            <div><span class="label">获胜方:</span><span class="value" id="finalWinner">-</span></div>
+            <div><span class="label">游戏模式:</span><span class="value" id="finalMode">-</span></div>
+            <div><span class="label">AI难度:</span><span class="value" id="finalDifficulty">-</span></div>
+            <div><span class="label">总步数:</span><span class="value" id="finalMoves">0</span></div>
+        </div>
+        <button onclick="resetGame()" style="margin-top: 10px;">再来一局</button>
+        <button onclick="goBackHome()" style="margin-top: 5px;">返回主页</button>
     </div>
 
     <script>
@@ -276,6 +306,8 @@
         let isPVE = false;
         let aiDifficulty = 'medium';
         let aiThinking = false;
+        let moveCount = 0;
+        let gameStartTime = null;
 
         const aiConfig = {
             easy: { attack: 0.3, defense: 0.8, random: 0.4 },
@@ -430,6 +462,7 @@
 
             board[x][y] = currentPlayer;
             drawPiece(x, y, currentPlayer);
+            moveCount++;
 
             if (checkWin(x, y, currentPlayer)) {
                 gameOver = true;
@@ -440,7 +473,6 @@
             currentPlayer = currentPlayer === 1 ? 2 : 1;
             updatePlayerInfo();
 
-            // 如果是人机模式，AI回合
             if (gameMode === 'pve' && currentPlayer === 2 && !gameOver) {
                 setTimeout(aiMove, 500);
             }
@@ -596,7 +628,20 @@
         }
 
         function showGameOver(winner) {
-            document.getElementById('winnerText').textContent = `玩家${winner === 1 ? '黑棋' : '白棋'}获胜！`;
+            const winnerName = winner === 1 ? '黑棋' : '白棋';
+            const modeText = gameMode === 'pvp' ? '双人对战' : '人机对战';
+            const difficultyText = {
+                'easy': '简单',
+                'medium': '中等',
+                'hard': '困难'
+            }[aiDifficulty];
+
+            document.getElementById('winnerText').textContent = `🎉 ${winnerName}获胜！`;
+            document.getElementById('finalWinner').textContent = winnerName;
+            document.getElementById('finalMode').textContent = modeText;
+            document.getElementById('finalDifficulty').textContent = gameMode === 'pve' ? difficultyText : '-';
+            document.getElementById('finalMoves').textContent = moveCount;
+            
             document.getElementById('gameOverOverlay').style.display = 'block';
             document.getElementById('gameOver').style.display = 'block';
         }
@@ -610,6 +655,8 @@
             currentPlayer = 1;
             aiThinking = false;
             isPVE = gameMode === 'pve';
+            moveCount = 0;
+            gameStartTime = Date.now();
             const ds = document.getElementById('difficultySelector');
             if(ds) ds.style.display = isPVE ? 'block' : 'none';
             initBoard();
@@ -673,9 +720,11 @@
             window.location.href = '../../index.html';
         }
 
-        // 初始化游戏
-        initBoard();
-        drawBoard();
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            initBoard();
+            drawBoard();
+        });
     </script>
 </body>
 </html>

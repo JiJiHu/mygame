@@ -1,0 +1,13 @@
+{
+  "active": true,
+  "iteration": 1,
+  "minIterations": 1,
+  "maxIterations": 3,
+  "completionPromise": "DONE",
+  "tasksMode": false,
+  "taskPromise": "READY_FOR_NEXT_TASK",
+  "prompt": "创建 server-ralph-test.txt，内容为'Ralph使用OpenCode服务器模式成功！'，完成后输出<promise>DONE</promise>",
+  "startedAt": "2026-02-13T12:49:00.005Z",
+  "model": "",
+  "agent": "opencode"
+}

@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>航海王打砖块</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a3a5c 50%, #0d2137 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            color: #fff;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+        
+        #gameCanvas {
+            background: linear-gradient(180deg, #0d2137 0%, #1a3a5c 100%);
+            border: 3px solid #d4a84b;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(212, 168, 75, 0.3), inset 0 0 60px rgba(0,0,0,0.5);
+        }
+        
+        .ui-header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+            z-index: 10;
+            background: rgba(10, 22, 40, 0.9);
+            padding: 10px 30px;
+            border-radius: 25px;
+            border: 2px solid #d4a84b;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        
+        .stat-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            color: #d4a84b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 12px;
+        }
+        
+        .stat-value {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        
+        .hearts {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .heart {
+            color: #e74c3c;
+            font-size: 20px;
+            text-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
+        }
+        
+        .heart.lost {
+            color: #444;
+            text-shadow: none;
+        }
+        
+        /* Menu Styles */
+        .menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 22, 40, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: 8px;
+        }
+        
+        .menu-overlay.hidden {
+            display: none;
+        }
+        
+        .game-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(36px, 8vw, 56px);
+            color: #d4a84b;
+            text-shadow: 
+                0 0 10px rgba(212, 168, 75, 0.8),
+                0 0 20px rgba(212, 168, 75, 0.5),
+                3px 3px 0px #8b0000;
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+            text-align: center;
+        }
+        
+        .game-subtitle {
+            color: #87ceeb;
+            font-size: 18px;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(135, 206, 235, 0.5);
+        }
+        
+        .difficulty-section {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .difficulty-label {
+            color: #d4a84b;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .difficulty-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .diff-btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #d4a84b;
+            background: rgba(212, 168, 75, 0.1);
+            color: #d4a84b;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .diff-btn:hover, .diff-btn.active {
+            background: #d4a84b;
+            color: #0a1628;
+            box-shadow: 0 0 20px rgba(212, 168, 75, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .menu-btn {
+            padding: 15px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            min-width: 220px;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #d4a84b 0%, #f0d78c 50%, #d4a84b 100%);
+            color: #0a1628;
+            box-shadow: 0 4px 20px rgba(212, 168, 75, 0.5);
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(212, 168, 75, 0.7);
+        }
+        
+        .home-btn {
+            background: linear-gradient(135deg, #3498db 0%, #5dade2 50%, #3498db 100%);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.5);
+        }
+        
+        .home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(52, 152, 219, 0.7);
+        }
+        
+        .game-over-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: #e74c3c;
+            text-shadow: 0 0 20px rgba(231, 76, 60, 0.8);
+            margin-bottom: 20px;
+        }
+        
+        .victory-title {
+            color: #2ecc71;
+            text-shadow: 0 0 20px rgba(46, 204, 113, 0.8);
+        }
+        
+        .final-score {
+            font-size: 24px;
+            color: #d4a84b;
+            margin-bottom: 30px;
+        }
+        
+        .pause-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #d4a84b;
+            text-shadow: 0 0 20px rgba(212, 168, 75, 0.8);
+            display: none;
+            z-index: 50;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 4px;
+        }
+        
+        .controls-hint {
+            margin-top: 30px;
+            color: #87ceeb;
+            font-size: 14px;
+            text-align: center;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+        
+        .controls-hint span {
+            color: #d4a84b;
+        }
+        
+        /* Wave Animation */
+        .wave-decoration {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            overflow: hidden;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z' fill='%23d4a84b' opacity='.25'/%3E%3C/svg%3E") repeat-x;
+            animation: wave 10s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .pause-menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 22, 40, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            border-radius: 8px;
+        }
+
+        .pause-menu-overlay.show {
+            display: flex;
+        }
+
+        .pause-menu-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(32px, 6vw, 48px);
+            color: #d4a84b;
+            text-shadow: 0 0 20px rgba(212, 168, 75, 0.8);
+            margin-bottom: 40px;
+        }
+
+        .pause-menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .pause-menu-btn {
+            padding: 15px 50px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            min-width: 220px;
+        }
+
+        .resume-btn {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 50%, #2ecc71 100%);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(46, 204, 113, 0.5);
+        }
+
+        .resume-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(46, 204, 113, 0.7);
+        }
+
+        .back-menu-btn {
+            background: linear-gradient(135deg, #3498db 0%, #5dade2 50%, #3498db 100%);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.5);
+        }
+
+        .back-menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(52, 152, 219, 0.7);
+        }
+
+        /* 游戏内暂停按钮 */
+        .game-pause-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            background: rgba(212, 168, 75, 0.9);
+            border: 2px solid #d4a84b;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            color: #0a1628;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+            transition: all 0.3s;
+            pointer-events: auto;
+        }
+
+        .game-pause-btn:hover {
+            background: #d4a84b;
+            transform: scale(1.1);
+        }
+
+        .back-home-btn {
+            position: absolute;
+            top: 15px;
+            right: 75px;
+            width: 40px;
+            height: 40px;
+            background: rgba(231, 76, 60, 0.9);
+            border: 2px solid #e74c3c;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+            transition: all 0.3s;
+            pointer-events: auto;
+        }
+
+        .back-home-btn:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        #gameControls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 55;
+        }
+
+        #gameControls > * {
+            pointer-events: auto;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .ui-header {
+                gap: 15px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+
+            .stat-box {
+                font-size: 14px;
+            }
+
+            .diff-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .menu-btn {
+                padding: 12px 35px;
+                font-size: 18px;
+                min-width: 180px;
+            }
+
+            .game-pause-btn,
+            .back-home-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .back-home-btn {
+                right: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="ui-header" id="gameUI" style="display: none;">
+            <div class="stat-box">
+                <span class="stat-label">分数</span>
+                <span class="stat-value" id="scoreDisplay">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">生命</span>
+                <div class="hearts" id="livesDisplay">
+                    <span class="heart">❤</span>
+                    <span class="heart">❤</span>
+                    <span class="heart">❤</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pause-indicator" id="pauseIndicator">暂停</div>
+
+        <div id="gameControls" style="display: none;">
+            <button class="back-home-btn" id="backHomeBtn" title="返回主页">×</button>
+            <button class="game-pause-btn" id="gamePauseBtn" title="暂停游戏">⏸</button>
+        </div>
+
+        <div class="pause-menu-overlay" id="pauseMenu">
+            <h2 class="pause-menu-title">游戏暂停</h2>
+            <div class="pause-menu-buttons">
+                <button class="pause-menu-btn resume-btn" id="resumeBtn">继续游戏</button>
+                <button class="pause-menu-btn back-menu-btn" id="pauseBackMenuBtn">返回菜单</button>
+                <button class="pause-menu-btn home-btn" id="pauseHomeBtn">返回主页</button>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div class="menu-overlay" id="mainMenu">
+            <h1 class="game-title">☠️ 航海王打砖块</h1>
+            <p class="game-subtitle">伟大航路篇</p>
+            
+            <div class="difficulty-section">
+                <p class="difficulty-label">选择难度</p>
+                <div class="difficulty-buttons">
+                    <button class="diff-btn active" data-diff="easy">简单</button>
+                    <button class="diff-btn" data-diff="medium">中等</button>
+                    <button class="diff-btn" data-diff="hard">困难</button>
+                </div>
+            </div>
+            
+            <div class="menu-buttons">
+                <button class="menu-btn start-btn" id="startBtn">开始游戏</button>
+                <button class="menu-btn home-btn" id="homeBtn">返回主页</button>
+            </div>
+            
+            <div class="controls-hint">
+                <p><span>← →</span> 键盘方向键 或 <span>鼠标/触摸</span> 控制球拍</p>
+                <p>按 <span>空格键</span> 暂停游戏</p>
+            </div>
+            
+            <div class="wave-decoration">
+                <div class="wave"></div>
+            </div>
+        </div>
+        
+        <!-- Game Over Menu -->
+        <div class="menu-overlay hidden" id="gameOverMenu">
+            <h2 class="game-over-title" id="gameOverTitle">游戏结束</h2>
+            <p class="final-score">最终得分: <span id="finalScore">0</span></p>
+
+            <div class="menu-buttons" id="gameOverButtons">
+                <button class="menu-btn start-btn" id="restartBtn">重新开始</button>
+                <button class="menu-btn home-btn" id="menuBtn">返回菜单</button>
+                <button class="menu-btn home-btn" id="gameOverHomeBtn">返回主页</button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game state
+        let gameState = 'menu'; // menu, playing, paused, gameover
+        let difficulty = 'easy';
+        let score = 0;
+        let lives = 3;
+        let animationId = null;
+        
+        // Difficulty settings
+        const difficultySettings = {
+            easy: { ballSpeed: 4, paddleWidth: 120 },
+            medium: { ballSpeed: 6, paddleWidth: 100 },
+            hard: { ballSpeed: 8, paddleWidth: 80 }
+        };
+        
+        // Game objects
+        let paddle = {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 15,
+            speed: 8,
+            dx: 0
+        };
+        
+        let ball = {
+            x: 0,
+            y: 0,
+            radius: 8,
+            speed: 4,
+            dx: 4,
+            dy: -4,
+            trail: []
+        };
+        
+        let bricks = [];
+        let particles = [];
+        
+        // Brick colors (One Piece themed)
+        const brickColors = [
+            { color: '#e74c3c', score: 10, border: '#c0392b' },
+            { color: '#3498db', score: 20, border: '#2980b9' },
+            { color: '#2ecc71', score: 30, border: '#27ae60' },
+            { color: '#f39c12', score: 40, border: '#e67e22' },
+            { color: '#9b59b6', score: 50, border: '#8e44ad' }
+        ];
+        
+        // Input handling
+        let rightPressed = false;
+        let leftPressed = false;
+        let mouseX = null;
+        let touchX = null;
+        
+        // Resize canvas
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const maxWidth = Math.min(800, container.clientWidth - 20);
+            const maxHeight = Math.min(600, window.innerHeight - 150);
+            
+            canvas.width = maxWidth;
+            canvas.height = maxHeight;
+            
+            // Reposition paddle and ball if needed
+            if (gameState === 'menu') {
+                paddle.y = canvas.height - 40;
+                paddle.x = canvas.width / 2 - paddle.width / 2;
+            }
+        }
+        
+        // Initialize bricks
+        function initBricks() {
+            bricks = [];
+            const rows = 5;
+            const cols = 8;
+            const padding = 10;
+            const offsetTop = 80;
+            const offsetLeft = 35;
+            
+            const brickWidth = (canvas.width - (offsetLeft * 2) - (padding * (cols - 1))) / cols;
+            const brickHeight = 25;
+            
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    bricks.push({
+                        x: offsetLeft + c * (brickWidth + padding),
+                        y: offsetTop + r * (brickHeight + padding),
+                        width: brickWidth,
+                        height: brickHeight,
+                        status: 1,
+                        color: brickColors[r],
+                        maxHits: r < 2 ? 1 : r < 4 ? 2 : 3,
+                        hits: 0,
+                        wobble: 0
+                    });
+                }
+            }
+        }
+        
+        // Initialize ball
+        function initBall() {
+            const settings = difficultySettings[difficulty];
+            ball.radius = Math.min(canvas.width, canvas.height) * 0.015;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height - 100;
+            ball.speed = settings.ballSpeed * (canvas.width / 800);
+            ball.dx = ball.speed * (Math.random() > 0.5 ? 1 : -1);
+            ball.dy = -ball.speed;
+            ball.trail = [];
+        }
+        
+        // Initialize paddle
+        function initPaddle() {
+            const settings = difficultySettings[difficulty];
+            paddle.width = settings.paddleWidth * (canvas.width / 800);
+            paddle.height = Math.max(12, canvas.height * 0.025);
+            paddle.x = canvas.width / 2 - paddle.width / 2;
+            paddle.y = canvas.height - paddle.height - 20;
+            paddle.speed = canvas.width * 0.01;
+        }
+        
+        // Particle system for brick destruction
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    dx: (Math.random() - 0.5) * 8,
+                    dy: (Math.random() - 0.5) * 8,
+                    radius: Math.random() * 4 + 2,
+                    color: color,
+                    life: 1.0,
+                    decay: Math.random() * 0.03 + 0.02
+                });
+            }
+        }
+        
+        // Update particles
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.dx;
+                p.y += p.dy;
+                p.dy += 0.2; // gravity
+                p.life -= p.decay;
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+        
+        // Draw particles
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+        
+        // Collision detection
+        function collisionDetection() {
+            let activeBricks = 0;
+            
+            for (let i = 0; i < bricks.length; i++) {
+                let b = bricks[i];
+                if (b.status === 1) {
+                    activeBricks++;
+                    
+                    if (ball.x + ball.radius > b.x && 
+                        ball.x - ball.radius < b.x + b.width &&
+                        ball.y + ball.radius > b.y && 
+                        ball.y - ball.radius < b.y + b.height) {
+                        
+                        ball.dy = -ball.dy;
+                        b.hits++;
+                        b.wobble = 10;
+                        
+                        // Create particles at brick center
+                        createParticles(b.x + b.width/2, b.y + b.height/2, b.color.color);
+                        
+                        if (b.hits >= b.maxHits) {
+                            b.status = 0;
+                            score += b.color.score;
+                            updateUI();
+                        }
+                    }
+                }
+            }
+            
+            // Check win condition
+            if (activeBricks === 0) {
+                gameWin();
+            }
+        }
+        
+        // Draw paddle with gradient and glow
+        function drawPaddle() {
+            ctx.save();
+            
+            // Glow effect
+            ctx.shadowColor = '#d4a84b';
+            ctx.shadowBlur = 20;
+            
+            // Gradient fill
+            const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height);
+            gradient.addColorStop(0, '#d4a84b');
+            gradient.addColorStop(0.5, '#f0d78c');
+            gradient.addColorStop(1, '#d4a84b');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 8);
+            ctx.fill();
+            
+            // Inner highlight
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.beginPath();
+            ctx.roundRect(paddle.x + 2, paddle.y + 2, paddle.width - 4, paddle.height/2 - 2, 6);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // Draw ball with trail effect
+        function drawBall() {
+            // Draw trail
+            ball.trail.forEach((pos, index) => {
+                const alpha = (index / ball.trail.length) * 0.5;
+                const radius = ball.radius * (index / ball.trail.length);
+                
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#d4a84b';
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+            
+            // Draw ball
+            ctx.save();
+            ctx.shadowColor = '#d4a84b';
+            ctx.shadowBlur = 15;
+            
+            const gradient = ctx.createRadialGradient(
+                ball.x - ball.radius/3, ball.y - ball.radius/3, 0,
+                ball.x, ball.y, ball.radius
+            );
+            gradient.addColorStop(0, '#fff');
+            gradient.addColorStop(0.3, '#f0d78c');
+            gradient.addColorStop(1, '#d4a84b');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // Draw bricks with effects
+        function drawBricks() {
+            bricks.forEach(b => {
+                if (b.status === 1) {
+                    ctx.save();
+                    
+                    // Wobble effect when hit
+                    if (b.wobble > 0) {
+                        ctx.translate(b.x + b.width/2, b.y + b.height/2);
+                        ctx.rotate(Math.sin(b.wobble) * 0.1);
+                        ctx.translate(-(b.x + b.width/2), -(b.y + b.height/2));
+                        b.wobble *= 0.9;
+                        if (b.wobble < 0.5) b.wobble = 0;
+                    }
+                    
+                    // Brick color based on remaining hits
+                    const hitRatio = b.hits / b.maxHits;
+                    let color = b.color.color;
+                    if (hitRatio > 0) {
+                        // Darken brick as it takes damage
+                        const darken = hitRatio * 0.4;
+                        ctx.filter = `brightness(${1 - darken})`;
+                    }
+                    
+                    // Gradient fill
+                    const gradient = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.height);
+                    gradient.addColorStop(0, color);
+                    gradient.addColorStop(1, b.color.border);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.roundRect(b.x, b.y, b.width, b.height, 4);
+                    ctx.fill();
+                    
+                    // Border
+                    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // Highlight
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctx.beginPath();
+                    ctx.roundRect(b.x, b.y, b.width, b.height/2, 4);
+                    ctx.fill();
+                    
+                    // Hit indicators
+                    if (b.maxHits > 1) {
+                        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                        for (let i = 0; i < b.maxHits - b.hits; i++) {
+                            ctx.beginPath();
+                            ctx.arc(b.x + 8 + i * 8, b.y + b.height - 6, 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                    
+                    ctx.restore();
+                }
+            });
+        }
+        
+        // Update game state
+        function update() {
+            if (gameState !== 'playing') return;
+            
+            // Move paddle
+            if (rightPressed && paddle.x < canvas.width - paddle.width) {
+                paddle.x += paddle.speed;
+            } else if (leftPressed && paddle.x > 0) {
+                paddle.x -= paddle.speed;
+            }
+            
+            // Mouse/Touch control
+            if (mouseX !== null) {
+                paddle.x = mouseX - paddle.width / 2;
+                mouseX = null;
+            }
+            if (touchX !== null) {
+                paddle.x = touchX - paddle.width / 2;
+            }
+            
+            // Clamp paddle position
+            paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
+            
+            // Move ball
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            
+            // Update trail
+            ball.trail.push({ x: ball.x, y: ball.y });
+            if (ball.trail.length > 10) {
+                ball.trail.shift();
+            }
+            
+            // Wall collision
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.dx = -ball.dx;
+            }
+            if (ball.y - ball.radius < 0) {
+                ball.dy = -ball.dy;
+            }
+            
+            // Paddle collision
+            if (ball.y + ball.radius > paddle.y &&
+                ball.y - ball.radius < paddle.y + paddle.height &&
+                ball.x > paddle.x &&
+                ball.x < paddle.x + paddle.width) {
+                
+                // Calculate hit position relative to paddle center
+                let hitPos = (ball.x - paddle.x) / paddle.width;
+                let angle = (hitPos - 0.5) * Math.PI / 3; // Max 60 degrees
+                
+                ball.dy = -Math.abs(ball.speed * Math.cos(angle));
+                ball.dx = ball.speed * Math.sin(angle);
+                ball.y = paddle.y - ball.radius - 1;
+            }
+            
+            // Ball falls below paddle
+            if (ball.y - ball.radius > canvas.height) {
+                lives--;
+                updateUI();
+                
+                if (lives <= 0) {
+                    gameOver();
+                } else {
+                    resetBall();
+                }
+            }
+            
+            // Brick collision
+            collisionDetection();
+            
+            // Update particles
+            updateParticles();
+        }
+        
+        // Reset ball position
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height - 100;
+            ball.dx = ball.speed * (Math.random() > 0.5 ? 1 : -1);
+            ball.dy = -ball.speed;
+            ball.trail = [];
+        }
+        
+        // Draw everything
+        function draw() {
+            // Clear canvas with fade effect
+            ctx.fillStyle = 'rgba(13, 33, 55, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background pattern
+            ctx.save();
+            ctx.strokeStyle = 'rgba(212, 168, 75, 0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            drawBricks();
+            drawPaddle();
+            drawBall();
+            drawParticles();
+        }
+        
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Start game
+        function startGame() {
+            gameState = 'playing';
+            score = 0;
+            lives = 3;
+            
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('gameOverMenu').classList.add('hidden');
+            document.getElementById('gameUI').style.display = 'flex';
+            document.getElementById('pauseIndicator').style.display = 'none';
+            
+            resizeCanvas();
+            initPaddle();
+            initBall();
+            initBricks();
+            updateUI();
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            gameLoop();
+        }
+        
+        // Game over
+        function gameOver() {
+            gameState = 'gameover';
+            document.getElementById('gameOverTitle').textContent = '游戏结束';
+            document.getElementById('gameOverTitle').classList.remove('victory-title');
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverMenu').classList.remove('hidden');
+        }
+        
+        // Game win
+        function gameWin() {
+            gameState = 'gameover';
+            document.getElementById('gameOverTitle').textContent = '🏴‍☠️ 成为海贼王！';
+            document.getElementById('gameOverTitle').classList.add('victory-title');
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverMenu').classList.remove('hidden');
+        }
+        
+        // Update UI
+        function updateUI() {
+            document.getElementById('scoreDisplay').textContent = score;
+            
+            const heartsContainer = document.getElementById('livesDisplay');
+            heartsContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'heart' + (i >= lives ? ' lost' : '');
+                heart.textContent = '❤';
+                heartsContainer.appendChild(heart);
+            }
+        }
+        
+        // Pause game
+        function togglePause() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+                document.getElementById('pauseIndicator').style.display = 'block';
+            } else if (gameState === 'paused') {
+                gameState = 'playing';
+                document.getElementById('pauseIndicator').style.display = 'none';
+            }
+        }
+        
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Right' || e.key === 'ArrowRight') {
+                rightPressed = true;
+            } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+                leftPressed = true;
+            } else if (e.key === ' ' || e.key === 'Spacebar') {
+                if (gameState === 'playing' || gameState === 'paused') {
+                    togglePause();
+                }
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'Right' || e.key === 'ArrowRight') {
+                rightPressed = false;
+            } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+                leftPressed = false;
+            }
+        });
+        
+        // Mouse control
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+        });
+        
+        // Touch control
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            touchX = e.touches[0].clientX - rect.left;
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            touchX = e.touches[0].clientX - rect.left;
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', () => {
+            touchX = null;
+        });
+        
+        // Button event listeners
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            document.getElementById('gameOverMenu').classList.add('hidden');
+            document.getElementById('mainMenu').classList.remove('hidden');
+            document.getElementById('gameUI').style.display = 'none';
+            gameState = 'menu';
+        });
+        
+        document.getElementById('homeBtn').addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
+        
+        // Difficulty buttons
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                difficulty = btn.dataset.diff;
+            });
+        });
+        
+        // Window resize
+        window.addEventListener('resize', () => {
+            if (gameState === 'playing' || gameState === 'paused') {
+                resizeCanvas();
+                initPaddle();
+            }
+        });
+        
+        // Pause menu functions
+        function showPauseMenu() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+                document.getElementById('pauseMenu').classList.add('show');
+                document.getElementById('pauseIndicator').style.display = 'none';
+            }
+        }
+
+        function hidePauseMenu() {
+            document.getElementById('pauseMenu').classList.remove('show');
+        }
+
+        function resumeGame() {
+            hidePauseMenu();
+            gameState = 'playing';
+        }
+
+        function backToMenu() {
+            hidePauseMenu();
+            document.getElementById('gameControls').style.display = 'none';
+            document.getElementById('gameUI').style.display = 'none';
+            document.getElementById('mainMenu').classList.remove('hidden');
+            gameState = 'menu';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function goBackHome() {
+            window.location.href = '../index.html';
+        }
+
+        // Override game over functions
+        const originalGameOver = gameOver;
+        const originalGameWin = gameWin;
+
+        gameOver = function() {
+            gameState = 'gameover';
+            document.getElementById('gameOverTitle').textContent = '游戏结束';
+            document.getElementById('gameOverTitle').classList.remove('victory-title');
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverMenu').classList.remove('hidden');
+            document.getElementById('gameControls').style.display = 'none';
+        };
+
+        gameWin = function() {
+            gameState = 'gameover';
+            document.getElementById('gameOverTitle').textContent = '🏴‍☠️ 成为海贼王！';
+            document.getElementById('gameOverTitle').classList.add('victory-title');
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverMenu').classList.remove('hidden');
+            document.getElementById('gameControls').style.display = 'none';
+        };
+
+        // Override startGame to show game controls
+        const originalStartGame = startGame;
+        startGame = function() {
+            gameState = 'playing';
+            score = 0;
+            lives = 3;
+
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('gameOverMenu').classList.add('hidden');
+            document.getElementById('gameUI').style.display = 'flex';
+            document.getElementById('pauseIndicator').style.display = 'none';
+            document.getElementById('gameControls').style.display = 'block';
+
+            resizeCanvas();
+            initPaddle();
+            initBall();
+            initBricks();
+            updateUI();
+
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            gameLoop();
+        };
+
+        // Additional event listeners
+        document.getElementById('gamePauseBtn').addEventListener('click', showPauseMenu);
+        document.getElementById('backHomeBtn').addEventListener('click', goBackHome);
+        document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+        document.getElementById('pauseBackMenuBtn').addEventListener('click', backToMenu);
+        document.getElementById('pauseHomeBtn').addEventListener('click', goBackHome);
+        document.getElementById('gameOverHomeBtn').addEventListener('click', goBackHome);
+
+        // Initialize
+        resizeCanvas();
+        initPaddle();
+    </script>
+</body>
+</html>

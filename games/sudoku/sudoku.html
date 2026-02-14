@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🏴‍☠️ 数独冒险</title>
-    <link rel="stylesheet" href="../../../onepiece-theme.css">
-    <link rel="stylesheet" href="../responsive-fix.css">
+    <link rel="stylesheet" href="../onepiece-theme.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -196,6 +195,77 @@
             background: #e68900;
         }
 
+        .leaderboard-btn {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .leaderboard-btn:hover {
+            background: #7B1FA2;
+        }
+
+        /* 积分榜样式 */
+        .leaderboard-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            width: 500px;
+            max-width: 90%;
+            z-index: 1000;
+            display: none;
+        }
+
+        .leaderboard-container {
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .leaderboard-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .leaderboard-table .rank-1 {
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .leaderboard-table .rank-2 {
+            font-weight: bold;
+            color: #C0C0C0;
+        }
+
+        .leaderboard-table .rank-3 {
+            font-weight: bold;
+            color: #CD7F32;
+        }
+
+        .leaderboard-controls {
+            text-align: center;
+        }
+
         .game-over {
             position: fixed;
             top: 50%;
@@ -312,6 +382,7 @@
             <button class="restart-btn" onclick="restartGame()">重新开始</button>
             <button class="hint-btn" onclick="showHint()">提示</button>
             <button class="check-btn" onclick="checkSolution()">检查</button>
+            <button class="leaderboard-btn" onclick="showLeaderboard()">查看排行榜</button>
         </div>
 
         <div class="controls">
@@ -345,6 +416,30 @@
         <button onclick="goBackHome()" style="margin-top: 10px; background: linear-gradient(145deg, var(--onepiece-ocean-mid), var(--onepiece-ocean-deep));">返回主页</button>
     </div>
 
+    <!-- 积分榜面板 -->
+    <div class="leaderboard-panel" id="leaderboardPanel">
+        <h3 style="text-align: center; color: #333; margin-bottom: 20px;">🏆 全球积分榜</h3>
+        <div class="leaderboard-container">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>玩家</th>
+                        <th>用时</th>
+                        <th>错误数</th>
+                        <th>难度</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <!-- 动态填充 -->
+                </tbody>
+            </table>
+        </div>
+        <div class="leaderboard-controls">
+            <button class="btn" onclick="hideLeaderboard()" style="padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; background: #667eea; color: white; transition: background 0.3s; font-size: 14px;">关闭</button>
+        </div>
+    </div>
+
     <script>
         const GRID_SIZE = 9;
         const BOX_SIZE = 3;
@@ -357,6 +452,67 @@
         let timerInterval = null;
         let isGameOver = false;
         let difficulty = 'easy';
+
+        // 排行榜API配置（使用相对路径，自动适配本地/外网访问）
+        // 现在使用8080端口（与游戏网站合并）
+        const LEADERBOARD_API = window.location.origin + '/api/leaderboard/sudoku';
+        let leaderboardData = [];
+        let leaderboardCache = null;
+
+        // 从API获取排行榜数据
+        async function fetchLeaderboard() {
+            try {
+                const response = await fetch(LEADERBOARD_API, { cache: 'no-store' });
+                const result = await response.json();
+                if (result.success) {
+                    leaderboardData = result.leaderboard;
+                    leaderboardCache = leaderboardData;
+                    return leaderboardData;
+                }
+            } catch (error) {
+                console.error('获取排行榜失败:', error);
+                // 如果API失败，使用缓存数据
+                if (leaderboardCache) {
+                    console.log('使用缓存数据');
+                    leaderboardData = leaderboardCache;
+                }
+            }
+            return leaderboardData || [];
+        }
+
+        // 保存分数到API
+        async function saveScoreToAPI(scoreData) {
+            try {
+                console.log('正在保存数独分数:', scoreData);
+                const response = await fetch(LEADERBOARD_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(scoreData)
+                });
+
+                if (!response.ok) {
+                    console.error('API响应错误:', response.status, response.statusText);
+                    return false;
+                }
+
+                const result = await response.json();
+                console.log('API返回:', result);
+
+                if (result.success) {
+                    leaderboardData = result.leaderboard;
+                    leaderboardCache = leaderboardData;
+                    return true;
+                } else {
+                    console.error('API返回错误:', result.error);
+                    return false;
+                }
+            } catch (error) {
+                console.error('保存分数失败:', error);
+                return false;
+            }
+        }
 
         const sudokuGrid = document.getElementById('sudokuGrid');
 
@@ -814,29 +970,36 @@ function checkSolution() {
         }
 
         // 保存成绩
-        function saveScore() {
+        async function saveScore() {
+            const btn = event.target;
             const playerName = document.getElementById('playerName').value.trim() || '匿名';
-            const score = {
+            const scoreData = {
                 name: playerName,
                 time: timer,
                 errors: errors,
-                difficulty: difficulty,
-                date: new Date().toLocaleString('zh-CN')
+                difficulty: difficulty
             };
 
-            let leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard') || '[]');
-            leaderboard.push(score);
+            // 禁用按钮，防止重复点击
+            btn.disabled = true;
+            btn.textContent = '保存中...';
 
-            // 按用时短优先排序
-            leaderboard.sort((a, b) => a.time - b.time);
+            // 保存到API
+            const success = await saveScoreToAPI(scoreData);
 
-            // 只保留前10名
-            leaderboard = leaderboard.slice(0, 10);
-
-            localStorage.setItem('sudokuLeaderboard', JSON.stringify(leaderboard));
-
-            hideNameInput();
-            displayLeaderboard();
+            if (success) {
+                btn.textContent = '✅ 已保存';
+                setTimeout(() => {
+                    hideNameInput();
+                    displayLeaderboard();
+                    btn.disabled = false;
+                    btn.textContent = '保存成绩';
+                }, 1000);
+            } else {
+                btn.disabled = false;
+                btn.textContent = '保存成绩';
+                alert('保存失败，请稍后重试');
+            }
         }
 
         // 隐藏名字输入
@@ -846,16 +1009,76 @@ function checkSolution() {
         }
 
         // 显示排行榜
-        function displayLeaderboard() {
-            const leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard') || '[]');
+        // 显示排行榜（面板模式）
+        async function showLeaderboard() {
+            const panel = document.getElementById('leaderboardPanel');
+            const tbody = document.getElementById('leaderboardBody');
+
+            // 先显示面板和加载提示
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">⏳ 加载中...</td></tr>';
+            panel.style.display = 'block';
+
+            // 从API获取最新数据
+            await fetchLeaderboard();
+
+            // 排序：用时越少越好
+            leaderboardData.sort((a, b) => a.time - b.time);
+
+            // 填充表格
+            tbody.innerHTML = '';
+
+            if (leaderboardData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">暂无记录</td></tr>';
+                return;
+            }
+
+            leaderboardData.forEach((score, index) => {
+                const row = document.createElement('tr');
+                row.className = index < 3 ? `rank-${index + 1}` : '';
+
+                const minutes = Math.floor(score.time / 60).toString().padStart(2, '0');
+                const seconds = (score.time % 60).toString().padStart(2, '0');
+
+                const diffText = {
+                    'easy': '简单',
+                    'medium': '中等',
+                    'hard': '困难'
+                }[score.difficulty];
+
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${score.name || '匿名玩家'}</td>
+                    <td>${minutes}:${seconds}</td>
+                    <td>${score.errors}</td>
+                    <td>${diffText}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // 隐藏排行榜
+        function hideLeaderboard() {
+            const panel = document.getElementById('leaderboardPanel');
+            panel.style.display = 'none';
+        }
+
+        async function displayLeaderboard() {
             const leaderboardList = document.getElementById('leaderboardList');
             const leaderboardSection = document.getElementById('leaderboardSection');
 
-            if (leaderboard.length === 0) {
+            // 先显示加载提示
+            leaderboardSection.style.display = 'block';
+            leaderboardList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">⏳ 加载中...</p>';
+
+            // 从API获取最新数据
+            await fetchLeaderboard();
+
+            if (leaderboardData.length === 0) {
                 leaderboardList.innerHTML = '<p style="text-align: center; color: #666;">暂无记录，快来创造第一个记录吧！</p>';
             } else {
                 let html = '';
-                leaderboard.forEach((score, index) => {
+                leaderboardData.forEach((score, index) => {
                     const minutes = Math.floor(score.time / 60).toString().padStart(2, '0');
                     const seconds = (score.time % 60).toString().padStart(2, '0');
                     const medals = ['🥇', '🥈', '🥉'];
@@ -886,10 +1109,6 @@ function checkSolution() {
 
                 leaderboardList.innerHTML = html;
             }
-
-            console.log('Showing leaderboard');
-            leaderboardSection.style.display = 'block';
-            console.log('leaderboardSection display:', leaderboardSection.style.display);
 
             document.getElementById('finalErrors').textContent = errors;
 

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>藏宝图 - 排行榜管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --ocean-blue: #0066cc;
+            --ocean-dark: #004080;
+            --ocean-light: #4da3ff;
+            --sky-blue: #87CEEB;
+            --sand: #f4e4bc;
+            --sunset: #ff6b35;
+            --dark-blue: #1a237e;
+            --text-light: #ffffff;
+            --text-dark: #2c3e50;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--sky-blue) 0%, var(--ocean-blue) 50%, var(--dark-blue) 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 海洋波浪背景 */
+        .ocean-waves {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .wave {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%230066cc' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+            animation: wave 20s linear infinite;
+        }
+
+        .wave:nth-child(1) {
+            top: 40%;
+            animation-delay: 0s;
+            opacity: 0.5;
+        }
+
+        .wave:nth-child(2) {
+            top: 50%;
+            animation-delay: -5s;
+            opacity: 0.4;
+        }
+
+        .wave:nth-child(3) {
+            top: 60%;
+            animation-delay: -10s;
+            opacity: 0.3;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: linear-gradient(135deg, rgba(0, 64, 128, 0.9) 0%, rgba(26, 35, 126, 0.9) 100%);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            margin-left: 1rem;
+        }
+
+        .nav-links a:hover {
+            background: var(--sunset);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 228, 188, 0.9) 100%);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+            border: 2px solid var(--sand);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ocean-dark);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* 统计信息 */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, var(--ocean-light) 0%, var(--ocean-blue) 100%);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 64, 128, 0.3);
+        }
+
+        .stat-item .label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .stat-item .value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--text-light);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 按钮 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--ocean-blue) 0%, var(--ocean-dark) 100%);
+            color: var(--text-light);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 64, 128, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
+            color: var(--text-dark);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 183, 0, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: var(--text-light);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(204, 0, 0, 0.4);
+        }
+
+        .btn:disabled {
+            background: var(--text-secondary);
+            color: var(--text-light);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* 状态消息 */
+        .status {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+
+        .status.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: var(--text-light);
+            display: block;
+        }
+
+        .status.error {
+            background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+            color: var(--text-light);
+            display: block;
+        }
+
+        .status.loading {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: var(--text-light);
+            display: block;
+        }
+
+        /* 装饰元素 */
+        .treasure {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.75rem 1rem;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 2rem 1rem;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .nav-links a {
+                margin-left: 0;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 海洋波浪背景 -->
+    <div class="ocean-waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="./" class="logo">
+                <span>🗺️</span>
+                <span>藏宝图</span>
+            </a>
+            <div class="nav-links">
+                <a href="./">← 返回</a>
+                <a href="ops.html">航海日志</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <h1>🏴‍☠️ 排行榜管理 🏴‍☠️</h1>
+
+        <!-- 统计信息 -->
+        <div class="card">
+            <div class="treasure">💰</div>
+            <h2>📊 宝库统计</h2>
+            <div class="stats" id="stats">
+                <div class="stat-item">
+                    <div class="label">🐍 海蛇记录</div>
+                    <div class="value" id="snake-count">—</div>
+                </div>
+                <div class="stat-item">
+                    <div class="label">🔢 宝藏记录</div>
+                    <div class="value" id="sudoku-count">—</div>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="loadStats()">
+                <span>🔄</span>
+                <span>更新统计</span>
+            </button>
+        </div>
+
+        <!-- 清空本地数据 -->
+        <div class="card">
+            <h2>🧹 清理船只日志</h2>
+            <p style="color: var(--ocean-dark); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                清除本地船只记录日志（不影响总部宝藏库）
+            </p>
+            <button class="btn btn-warning btn-full" onclick="clearLocalStorage()">
+                <span>🧹</span>
+                <span>清理日志</span>
+            </button>
+            <div class="status" id="localStatus"></div>
+        </div>
+
+        <!-- 清空服务器数据 -->
+        <div class="card">
+            <h2>⚠️ 清空宝藏库</h2>
+            <p style="color: var(--ocean-dark); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                清空总部所有宝藏记录（慎重操作！）
+            </p>
+            <button class="btn btn-danger btn-full" onclick="clearServerLeaderboard()">
+                <span>💥</span>
+                <span>清空宝藏库</span>
+            </button>
+            <div class="status" id="serverStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        // API 配置
+        const API_BASE = window.location.origin + '/api/leaderboard';
+
+        // 加载统计信息
+        async function loadStats() {
+            const snakeCount = document.getElementById('snake-count');
+            const sudokuCount = document.getElementById('sudoku-count');
+
+            snakeCount.textContent = '⏳';
+            sudokuCount.textContent = '⏳';
+
+            try {
+                const [snakeRes, sudokuRes] = await Promise.all([
+                    fetch(`${API_BASE}/snake`, { cache: 'no-store' }),
+                    fetch(`${API_BASE}/sudoku`, { cache: 'no-store' })
+                ]);
+
+                const snakeData = await snakeRes.json();
+                const sudokuData = await sudokuRes.json();
+
+                snakeCount.textContent = snakeData.success ? snakeData.leaderboard.length : '❌';
+                sudokuCount.textContent = sudokuData.success ? sudokuData.leaderboard.length : '❌';
+            } catch (error) {
+                console.error('加载统计失败:', error);
+                snakeCount.textContent = '❌';
+                sudokuCount.textContent = '❌';
+            }
+        }
+
+        // 清空本地数据
+        function clearLocalStorage() {
+            const statusDiv = document.getElementById('localStatus');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '⏳ 清理中...';
+
+            try {
+                const keysToDelete = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.includes('snake') || key.includes('sudoku') || key.includes('gomoku')) {
+                        keysToDelete.push(key);
+                    }
+                }
+
+                keysToDelete.forEach(key => localStorage.removeItem(key));
+
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ 日志已清理';
+
+                setTimeout(() => {
+                    statusDiv.className = 'status';
+                }, 3000);
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ 清理失败: ' + error.message;
+            }
+        }
+
+        // 清空服务器排行榜
+        async function clearServerLeaderboard() {
+            if (!confirm('确定要清空所有宝藏记录吗？此操作不可撤销！')) {
+                return;
+            }
+
+            const statusDiv = document.getElementById('serverStatus');
+            statusDiv.className = 'status loading';
+            statusDiv.textContent = '⏳ 清空中...';
+            statusDiv.style.display = 'block';
+
+            try {
+                const games = ['snake', 'sudoku'];
+
+                for (const game of games) {
+                    const response = await fetch(`${API_BASE}/${game}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`清空 ${game} 宝藏库失败`);
+                    }
+                }
+
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ 宝藏库已清空';
+
+                setTimeout(() => {
+                    loadStats();
+                    statusDiv.className = 'status';
+                }, 2000);
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ 清空失败: ' + error.message;
+            }
+        }
+
+        // 页面加载时获取统计
+        window.onload = loadStats;
+    </script>
+</body>
+</html>

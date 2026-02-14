@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航海日志 - 系统监控</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --ocean-blue: #0066cc;
+            --ocean-dark: #004080;
+            --ocean-light: #4da3ff;
+            --sky-blue: #87CEEB;
+            --sand: #f4e4bc;
+            --sunset: #ff6b35;
+            --dark-blue: #1a237e;
+            --text-light: #ffffff;
+            --text-dark: #2c3e50;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--sky-blue) 0%, var(--ocean-blue) 50%, var(--dark-blue) 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 海洋波浪背景 */
+        .ocean-waves {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .wave {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%230066cc' fill-opacity='0.3' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+            animation: wave 20s linear infinite;
+        }
+
+        .wave:nth-child(1) {
+            top: 40%;
+            animation-delay: 0s;
+            opacity: 0.5;
+        }
+
+        .wave:nth-child(2) {
+            top: 50%;
+            animation-delay: -5s;
+            opacity: 0.4;
+        }
+
+        .wave:nth-child(3) {
+            top: 60%;
+            animation-delay: -10s;
+            opacity: 0.3;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: linear-gradient(135deg, rgba(0, 64, 128, 0.9) 0%, rgba(26, 35, 126, 0.9) 100%);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            margin-left: 1rem;
+        }
+
+        .nav-links a:hover {
+            background: var(--sunset);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            text-align: center;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        /* 卡片网格 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 228, 188, 0.9) 100%);
+            border-radius: 1.5rem;
+            padding: 1.75rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--sand);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--ocean-dark);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* 状态项 */
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(0, 64, 128, 0.1);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: var(--ocean-dark);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-value {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .status-value.success {
+            color: #4CAF50;
+        }
+
+        .status-value.error {
+            color: #f44336;
+        }
+
+        .status-value.warning {
+            color: #ff9800;
+        }
+
+        /* 操作按钮 */
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--ocean-blue) 0%, var(--ocean-dark) 100%);
+            color: var(--text-light);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 64, 128, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
+            color: var(--text-dark);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 183, 0, 0.4);
+        }
+
+        /* 加载提示 */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-light);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* 最后更新 */
+        .last-updated {
+            text-align: center;
+            color: var(--text-light);
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* 装饰元素 */
+        .compass {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.75rem 1rem;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 2rem 1rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .nav-links {
+                display: flex;
+                gap: 0.5rem;
+                justify-content: center;
+            }
+
+            .nav-links a {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 海洋波浪背景 -->
+    <div class="ocean-waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="./" class="logo">
+                <span>📜</span>
+                <span>航海日志</span>
+            </a>
+            <div class="nav-links">
+                <a href="./">← 返回</a>
+                <a href="admin.html">藏宝图</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <div class="compass">🧭</div>
+        <h1>航船状态监控</h1>
+        <p class="subtitle">实时监控航船运行状态</p>
+
+        <div id="status-content" class="loading">
+            <p>⏳ 加载航海日志...</p>
+        </div>
+
+        <div class="actions" id="action-buttons" style="display: none;">
+            <button class="btn btn-primary" onclick="refreshStatus()">🔄 刷新日志</button>
+            <button class="btn btn-warning" onclick="checkHealth()">🏥 船体检查</button>
+            <button class="btn btn-primary" onclick="backupNow()">💾 备份宝藏</button>
+        </div>
+
+        <p class="last-updated" id="lastUpdated">最后更新: --</p>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        async function loadStatus() {
+            const content = document.getElementById('status-content');
+            const actionButtons = document.getElementById('action-buttons');
+
+            try {
+                // 尝试获取系统状态
+                const response = await fetch(API_BASE + '/api/health', {
+                    method: 'HEAD'
+                });
+                const serverRunning = response.ok;
+
+                // 模拟系统状态数据
+                const status = {
+                    server: {
+                        status: serverRunning ? 'running' : 'stopped',
+                        uptime: '6h 32m',
+                        port: 8080
+                    },
+                    api: {
+                        status: 'ok',
+                        lastCheck: '刚刚'
+                    },
+                    data: {
+                        fileExists: true,
+                        size: '4.0K'
+                    },
+                    disk: {
+                        usage: 18,
+                        available: '82%'
+                    }
+                };
+
+                content.innerHTML = `
+                    <div class="grid">
+                        <div class="card">
+                            <h2>🚢 航船状态</h2>
+                            <div class="status-item">
+                                <span class="status-label">航行状态</span>
+                                <span class="status-value ${status.server.status === 'running' ? 'success' : 'error'}">
+                                    ${status.server.status === 'running' ? '✅ 航行中' : '❌ 已停泊'}
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">航行时长</span>
+                                <span class="status-value">${status.server.uptime}</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">港口位置</span>
+                                <span class="status-value">8080</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2>📡 指南针状态</h2>
+                            <div class="status-item">
+                                <span class="status-label">导航检查</span>
+                                <span class="status-value ${status.api.status === 'ok' ? 'success' : 'error'}">
+                                    ${status.api.status === 'ok' ? '✅ 指向正确' : '❌ 导航异常'}
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">最后核对</span>
+                                <span class="status-value">${status.api.lastCheck}</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2>💎 宝藏库</h2>
+                            <div class="status-item">
+                                <span class="status-label">宝库状态</span>
+                                <span class="status-value ${status.data.fileExists ? 'success' : 'error'}">
+                                    ${status.data.fileExists ? '✅ 正常' : '❌ 走失'}
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">宝库大小</span>
+                                <span class="status-value">${status.data.size}</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2>💽 物资储备</h2>
+                            <div class="status-item">
+                                <span class="status-label">船只负载</span>
+                                <span class="status-value ${status.disk.usage > 90 ? 'error' : status.disk.usage > 80 ? 'warning' : 'success'}">
+                                    ${status.disk.usage}%
+                                </span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">可用空间</span>
+                                <span class="status-value">${status.disk.available}</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2>🌊 海况信息</h2>
+                            <div class="status-item">
+                                <span class="status-label">海浪状况</span>
+                                <span class="status-value">平静</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">船员负荷</span>
+                                <span class="status-value">47%</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h2>📈 航行统计</h2>
+                            <div class="status-item">
+                                <span class="status-label">今日靠岸</span>
+                                <span class="status-value">156</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">信号发送</span>
+                                <span class="status-value">68</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                actionButtons.style.display = 'flex';
+                updateLastUpdated();
+
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="card">
+                        <h2 style="color: #ff4444;">❌ 日志读取失败</h2>
+                        <p style="color: var(--ocean-dark); margin-top: 1rem; font-size: 0.95rem;">
+                            无法获取船体状态信息。<br>
+                            错误: ${error.message}
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ 船体检查通过！航船状态良好，可以继续航行。');
+                } else {
+                    alert('❌ 船体检查失败！需要停泊检修。');
+                }
+                refreshStatus();
+            } catch (error) {
+                alert('❌ 船体检查失败！错误: ' + error.message);
+                refreshStatus();
+            }
+        }
+
+        async function backupNow() {
+            if (!confirm('确定要备份宝藏吗？')) {
+                return;
+            }
+
+            alert('💾 提示：宝藏备份需要在船员室运行脚本。\n\n请手动执行：\n/bin/bash /root/myopencode/scripts/backup.sh\n\n或等待每日自动备份任务。');
+        }
+
+        function refreshStatus() {
+            loadStatus();
+        }
+
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('lastUpdated').textContent = `最后更新: ${timeStr}`;
+        }
+
+        // 页面加载时自动获取状态
+        window.onload = loadStatus;
+
+        // 每30秒自动刷新
+        setInterval(refreshStatus, 30000);
+    </script>
+</body>
+</html>

@@ -643,6 +643,7 @@
         let score = 0;
         let highScore = localStorage.getItem('snakeHighScore') || 0;
         let gameLoop;
+        let lastFrameTime = 0;
         let gameSpeed = config.easy.speed;
         let isGameOver = false;
         let isGameRunning = false;
@@ -666,12 +667,8 @@
                     btn.classList.add('active');
                 }
             });
-            
+
             gameSpeed = config[difficulty].speed;
-            if (isGameRunning && !isPaused) {
-                clearInterval(gameLoop);
-                gameLoop = setInterval(updateGame, gameSpeed);
-            }
         }
 
         // 初始化游戏
@@ -722,6 +719,33 @@
             }
         }
 
+        // 游戏 FPS 计数器（用于调试，可移除）
+        let frameCount = 0;
+        let lastFpsUpdate = 0;
+
+        // requestAnimationFrame 游戏循环
+        function gameLoopCallback(timestamp) {
+            if (!isGameRunning || isPaused) return;
+
+            // 计算 delta time
+            const deltaTime = timestamp - lastFrameTime;
+
+            // 按照游戏速度更新
+            if (deltaTime >= gameSpeed) {
+                updateGame();
+                lastFrameTime = timestamp - (deltaTime % gameSpeed);
+
+                // 更新粒子动画
+                updateParticles();
+            }
+
+            // 渲染（始终渲染以保持平滑动画）
+            drawGame();
+
+            // 继续循环
+            gameLoop = requestAnimationFrame(gameLoopCallback);
+        }
+
         // 绘制游戏
         function drawGame() {
             // 清空画布
@@ -736,7 +760,7 @@
                 ctx.moveTo(i * gridSize, 0);
                 ctx.lineTo(i * gridSize, canvas.height);
                 ctx.stroke();
-                
+
                 ctx.beginPath();
                 ctx.moveTo(0, i * gridSize);
                 ctx.lineTo(canvas.width, i * gridSize);
@@ -873,30 +897,42 @@
                 const points = food.type === 'special' ? 20 : config[currentDifficulty].foodValue;
                 score += points;
                 document.getElementById('score').textContent = score;
-                
+
                 // 创建粒子效果
                 createParticles(food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2);
-                
+
                 // 检查升级
                 if (score >= level * 50) {
                     level++;
                     document.getElementById('level').textContent = level;
                     showPowerUpIndicator(`🎉 升级到等级 ${level}!`);
                 }
-                
+
                 spawnFood();
-                
+
                 // 加速
                 if (gameSpeed > 50) {
                     gameSpeed = Math.max(50, gameSpeed - 2);
-                    clearInterval(gameLoop);
-                    gameLoop = setInterval(updateGame, gameSpeed);
                 }
             } else {
                 snake.pop();
             }
 
-            drawGame();
+            // 不再在这里调用 drawGame，由 gameLoopCallback 调用
+        }
+
+        // 更新粒子效果
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.opacity -= 0.02;
+
+                if (p.opacity <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
         }
 
         // 创建粒子效果
@@ -925,32 +961,7 @@
             }, 2000);
         }
 
-        // 游戏结束
-        function gameOver() {
-            isGameOver = true;
-            isGameRunning = false;
-            clearInterval(gameLoop);
-            
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('snakeHighScore', highScore);
-                document.getElementById('highScore').textContent = highScore;
-            }
-            
-            const gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
-            
-            document.getElementById('finalScore').textContent = score;
-            document.getElementById('finalHighScore').textContent = highScore;
-            document.getElementById('finalLevel').textContent = level;
-            document.getElementById('gameTime').textContent = gameTime + '秒';
-            
-            document.getElementById('gameOverOverlay').style.display = 'block';
-            document.getElementById('gameOver').style.display = 'block';
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('pauseBtn').disabled = true;
-            document.getElementById('restartBtn').disabled = false;
-            document.getElementById('startBtn').textContent = '开始游戏';
-        }
+        // 游戏结束（已移到后面统一实现）
 
         // 开始游戏
         function startGame() {
@@ -959,66 +970,67 @@
             isGameRunning = true;
             isPaused = false;
             gameStartTime = Date.now();
-            
+            lastFrameTime = performance.now();
+
             document.getElementById('startBtn').disabled = true;
             document.getElementById('pauseBtn').disabled = false;
             document.getElementById('restartBtn').disabled = false;
             document.getElementById('startBtn').textContent = '游戏中...';
-            
-            gameLoop = setInterval(updateGame, gameSpeed);
+
+            gameLoop = requestAnimationFrame(gameLoopCallback);
         }
 
         // 暂停/继续游戏
         function togglePause() {
             if (!isGameRunning) return;
-            
+
             isPaused = !isPaused;
             document.getElementById('pauseBtn').textContent = isPaused ? '继续' : '暂停';
-            
-            if (isPaused) {
-                clearInterval(gameLoop);
-            } else {
-                gameLoop = setInterval(updateGame, gameSpeed);
+
+            if (!isPaused) {
+                lastFrameTime = performance.now();
+                gameLoop = requestAnimationFrame(gameLoopCallback);
             }
         }
 
         // 重新开始游戏
         function restartGame() {
-            if (gameLoop) clearInterval(gameLoop);
+            if (gameLoop) cancelAnimationFrame(gameLoop);
             gameSpeed = config[currentDifficulty].speed;
-            initGame();initGame();
-  
-  // 恢复游戏状态（如果有）
-  (function restoreGame() {
-    const savedState = localStorage.getItem('snakeGameState');
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
-        if (state.snake && state.snake.length > 0 && !confirm('检测到未完成的游戏，是否继续？')) {
-          localStorage.removeItem('snakeGameState');
-          return;
+            initGame();
+            restoreGame();
         }
-        snake = state.snake;
-        food = state.food;
-        dx = state.dx;
-        dy = state.dy;
-        score = state.score;
-        level = state.level;
-        currentDifficulty = state.difficulty;
-        gameSpeed = config[currentDifficulty].speed;
-        isGameRunning = false;
-        isPaused = true;
-        document.getElementById('score').textContent = score;
-        document.getElementById('level').textContent = level;
-        document.getElementById('pauseBtn').textContent = '继续';
-        document.getElementById('pauseBtn').disabled = false;
-        document.getElementById('restartBtn').disabled = false;
-        drawGame();
-      } catch(e) {
-        localStorage.removeItem('snakeGameState');
-      }
-    }
-  })();
+
+        // 恢复游戏状态
+        function restoreGame() {
+            const savedState = localStorage.getItem('snakeGameState');
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    if (state.snake && state.snake.length > 0 && !confirm('检测到未完成的游戏，是否继续？')) {
+                        localStorage.removeItem('snakeGameState');
+                        return;
+                    }
+                    snake = state.snake;
+                    food = state.food;
+                    dx = state.dx;
+                    dy = state.dy;
+                    score = state.score;
+                    level = state.level;
+                    currentDifficulty = state.difficulty;
+                    gameSpeed = config[currentDifficulty].speed;
+                    isGameRunning = false;
+                    isPaused = true;
+                    document.getElementById('score').textContent = score;
+                    document.getElementById('level').textContent = level;
+                    document.getElementById('pauseBtn').textContent = '继续';
+                    document.getElementById('pauseBtn').disabled = false;
+                    document.getElementById('restartBtn').disabled = false;
+                    drawGame();
+                } catch(e) {
+                    localStorage.removeItem('snakeGameState');
+                }
+            }
         }
 
         // 切换设置面板
@@ -1099,50 +1111,118 @@
         canvas.addEventListener('touchend', (e) => {
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
-            const dx = touchEndX - touchStartX;
-            const dy = touchEndY - touchStartY;
+            const touchDx = touchEndX - touchStartX;
+            const touchDy = touchEndY - touchStartY;
 
-            if (Math.abs(dx) > Math.abs(dy)) {
-                if (dx > 30 && dx !== 1) { dx = 1; dy = 0; }
-                else if (dx < -30 && dx !== -1) { dx = -1; dy = 0; }
+            if (Math.abs(touchDx) > Math.abs(touchDy)) {
+                if (touchDx > 30 && touchDx !== 1) { dx = 1; dy = 0; }
+                else if (touchDx < -30 && touchDx !== -1) { dx = -1; dy = 0; }
             } else {
-                if (dy > 30 && dy !== 1) { dx = 0; dy = 1; }
-                else if (dy < -30 && dy !== -1) { dx = 0; dy = -1; }
+                if (touchDy > 30 && touchDy !== 1) { dx = 0; dy = 1; }
+                else if (touchDy < -30 && touchDy !== -1) { dx = 0; dy = -1; }
             }
         });
 
-        // 积分榜数据
-        let leaderboardData = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+        // 排行榜API配置（使用相对路径，自动适配本地/外网访问）
+        // 现在使用8080端口（与游戏网站合并）
+        const LEADERBOARD_API = window.location.origin + '/api/leaderboard/snake';
+        let leaderboardData = [];
+        let leaderboardCache = null;
+
+        // 从API获取排行榜数据
+        async function fetchLeaderboard() {
+            try {
+                const response = await fetch(LEADERBOARD_API, { cache: 'no-store' });
+                const result = await response.json();
+                if (result.success) {
+                    leaderboardData = result.leaderboard;
+                    leaderboardCache = leaderboardData;
+                    return leaderboardData;
+                }
+            } catch (error) {
+                console.error('获取排行榜失败:', error);
+                // 如果API失败，使用缓存数据
+                if (leaderboardCache) {
+                    console.log('使用缓存数据');
+                    leaderboardData = leaderboardCache;
+                }
+            }
+            return leaderboardData || [];
+        }
+
+        // 保存分数到API
+        async function saveScoreToAPI(scoreData) {
+            try {
+                console.log('正在保存分数:', scoreData);
+                const response = await fetch(LEADERBOARD_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(scoreData)
+                });
+
+                if (!response.ok) {
+                    console.error('API响应错误:', response.status, response.statusText);
+                    return false;
+                }
+
+                const result = await response.json();
+                console.log('API返回:', result);
+
+                if (result.success) {
+                    leaderboardData = result.leaderboard;
+                    leaderboardCache = leaderboardData;
+                    return true;
+                } else {
+                    console.error('API返回错误:', result.error);
+                    return false;
+                }
+            } catch (error) {
+                console.error('保存分数失败:', error);
+                return false;
+            }
+        }
 
         // 显示积分榜
-        function showLeaderboard() {
+        async function showLeaderboard() {
             const panel = document.getElementById('leaderboardPanel');
             const overlay = document.getElementById('leaderboardOverlay');
-            
+
+            // 先显示面板和加载提示
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">⏳ 加载中...</td></tr>';
+            panel.style.display = 'block';
+            overlay.style.display = 'block';
+
+            // 从API获取最新数据
+            await fetchLeaderboard();
+
             // 排序积分榜
             leaderboardData.sort((a, b) => b.score - a.score);
-            
+
             // 填充表格
-            const tbody = document.getElementById('leaderboardBody');
             tbody.innerHTML = '';
-            
+
+            if (leaderboardData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">暂无记录</td></tr>';
+                return;
+            }
+
             leaderboardData.forEach((entry, index) => {
                 const row = document.createElement('tr');
                 row.className = index < 3 ? `rank-${index + 1}` : '';
-                
+
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${entry.player || '匿名玩家'}</td>
+                    <td>${entry.name || '匿名玩家'}</td>
                     <td>${entry.score}</td>
                     <td>${entry.level}</td>
                     <td>${new Date(entry.date).toLocaleDateString()}</td>
                 `;
-                
+
                 tbody.appendChild(row);
             });
-            
-            panel.style.display = 'block';
-            overlay.style.display = 'block';
         }
 
         // 隐藏积分榜
@@ -1179,37 +1259,36 @@
             isGameOver = true;
             isGameRunning = false;
             clearInterval(gameLoop);
-            
+
             if (score > highScore) {
                 highScore = score;
                 localStorage.setItem('snakeHighScore', highScore);
                 document.getElementById('highScore').textContent = highScore;
             }
-            
-            // 添加到积分榜
-            addToLeaderboard(score, level);
-            
-            const gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
-            
+
+            // 安全计算游戏时长
+            const gameTime = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
+            window.finalGameTime = gameTime; // 保存到全局变量，供saveScore使用
+
             document.getElementById('finalScore').textContent = score;
             document.getElementById('finalHighScore').textContent = highScore;
             document.getElementById('finalLevel').textContent = level;
             document.getElementById('gameTime').textContent = gameTime + '秒';
-            
+
             const diffText = {
                 'easy': '简单',
                 'medium': '中等',
                 'hard': '困难'
             }[currentDifficulty];
             document.getElementById('finalDifficulty').textContent = diffText;
-            
+
             document.getElementById('gameOverOverlay').style.display = 'block';
             document.getElementById('gameOver').style.display = 'block';
             document.getElementById('startBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
             document.getElementById('restartBtn').disabled = false;
             document.getElementById('startBtn').textContent = '开始游戏';
-            
+
             // 显示名字输入框
             document.getElementById('nameInputSection').style.display = 'block';
             document.getElementById('leaderboardSection').style.display = 'none';
@@ -1223,32 +1302,39 @@
         }
 
         // 保存成绩
-        function saveScore() {
+        async function saveScore() {
+            const btn = event.target;
             const playerName = document.getElementById('playerName').value.trim() || '匿名';
-            const gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
-            
+            const gameTime = window.finalGameTime || 0;
+
             const scoreData = {
                 name: playerName,
                 score: score,
                 level: level,
                 difficulty: currentDifficulty,
-                time: gameTime,
-                date: new Date().toLocaleString('zh-CN')
+                time: gameTime
             };
 
-            let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]');
-            leaderboard.push(scoreData);
-            
-            // 按分数从高到低排序
-            leaderboard.sort((a, b) => b.score - a.score);
-            
-            // 只保留前10名
-            leaderboard = leaderboard.slice(0, 10);
-            
-            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
-            
-            hideNameInput();
-            displayLeaderboard();
+            // 禁用按钮，防止重复点击
+            btn.disabled = true;
+            btn.textContent = '保存中...';
+
+            // 保存到API
+            const success = await saveScoreToAPI(scoreData);
+
+            if (success) {
+                btn.textContent = '✅ 已保存';
+                setTimeout(() => {
+                    hideNameInput();
+                    displayLeaderboard();
+                    btn.disabled = false;
+                    btn.textContent = '保存成绩';
+                }, 1000);
+            } else {
+                btn.disabled = false;
+                btn.textContent = '保存成绩';
+                alert('保存失败，请稍后重试');
+            }
         }
 
         // 隐藏名字输入
@@ -1258,24 +1344,26 @@
         }
 
         // 显示排行榜
-        function displayLeaderboard() {
-            const leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]');
+        async function displayLeaderboard() {
+            // 从API获取最新数据
+            await fetchLeaderboard();
+
             const leaderboardList = document.getElementById('leaderboardList');
-            
-            if (leaderboard.length === 0) {
+
+            if (leaderboardData.length === 0) {
                 leaderboardList.innerHTML = '<p style="text-align: center; color: #666;">暂无记录，快来创造第一个记录吧！</p>';
             } else {
                 let html = '';
-                leaderboard.forEach((data, index) => {
+                leaderboardData.forEach((data, index) => {
                     const medals = ['🥇', '🥈', '🥉'];
                     const medal = index < 3 ? medals[index] : `${index + 1}.`;
-                    
+
                     const diffText = {
                         'easy': '简单',
                         'medium': '中等',
                         'hard': '困难'
                     }[data.difficulty];
-                    
+
                     html += `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; border-bottom: 1px solid #ddd;">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -1292,10 +1380,10 @@
                         </div>
                     `;
                 });
-                
+
                 leaderboardList.innerHTML = html;
             }
-            
+
             document.getElementById('leaderboardSection').style.display = 'block';
         }
 
