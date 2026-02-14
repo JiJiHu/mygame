@@ -2,12 +2,12 @@
   "active": true,
   "iteration": 1,
   "minIterations": 1,
-  "maxIterations": 3,
-  "completionPromise": "DONE",
+  "maxIterations": 20,
+  "completionPromise": "TESTING_COMPLETE",
   "tasksMode": false,
   "taskPromise": "READY_FOR_NEXT_TASK",
-  "prompt": "创建 server-ralph-test.txt，内容为'Ralph使用OpenCode服务器模式成功！'，完成后输出<promise>DONE</promise>",
-  "startedAt": "2026-02-13T12:49:00.005Z",
+  "prompt": "详细测试7个游戏找出bug...",
+  "startedAt": "2026-02-14T07:09:37.249Z",
   "model": "",
   "agent": "opencode"
 }
