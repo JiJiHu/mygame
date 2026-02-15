@@ -1,0 +1,90 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/games/snake",
+      "dest": "/games/snake/snake.html"
+    },
+    {
+      "src": "/games/snake/",
+      "dest": "/games/snake/snake.html"
+    },
+    {
+      "src": "/games/gomoku",
+      "dest": "/games/gomoku/gomoku.html"
+    },
+    {
+      "src": "/games/gomoku/",
+      "dest": "/games/gomoku/gomoku.html"
+    },
+    {
+      "src": "/games/sudoku",
+      "dest": "/games/sudoku/sudoku.html"
+    },
+    {
+      "src": "/games/sudoku/",
+      "dest": "/games/sudoku/sudoku.html"
+    },
+    {
+      "src": "/games/minesweeper",
+      "dest": "/games/minesweeper/minesweeper.html"
+    },
+    {
+      "src": "/games/minesweeper/",
+      "dest": "/games/minesweeper/minesweeper.html"
+    },
+    {
+      "src": "/games/breakout",
+      "dest": "/games/breakout/breakout.html"
+    },
+    {
+      "src": "/games/breakout/",
+      "dest": "/games/breakout/breakout.html"
+    },
+    {
+      "src": "/games/sokoban",
+      "dest": "/games/sokoban/sokoban.html"
+    },
+    {
+      "src": "/games/sokoban/",
+      "dest": "/games/sokoban/sokoban.html"
+    },
+    {
+      "src": "/games/tower-defense",
+      "dest": "/games/tower-defense/tower-defense.html"
+    },
+    {
+      "src": "/games/tower-defense/",
+      "dest": "/games/tower-defense/tower-defense.html"
+    },
+    {
+      "src": "/games/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",
+      "dest": "/games/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/games/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.html)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    }
+  ],
+  "cleanUrls": true
+}
