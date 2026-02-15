@@ -1219,6 +1219,13 @@
         }
 
         // 显示排行榜
+        // HTML转义函数，防止XSS
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         async function showLeaderboard() {
             const overlay = document.getElementById('leaderboardOverlay');
             const content = document.getElementById('leaderboardContent');
@@ -1269,7 +1276,7 @@
                     <li class="leaderboard-item">
                         <div class="leaderboard-rank">${rankEmoji}</div>
                         <div class="leaderboard-player">
-                            <div>${playerName}</div>
+                            <div>${escapeHtml(playerName)}</div>
                             <div class="leaderboard-info">${difficulty} | ${entry.metadata && entry.metadata.mines + '雷' || ''} | ${date}</div>
                         </div>
                         <div class="leaderboard-score">${entry.score}秒</div>

@@ -351,6 +351,17 @@
             box-shadow: 0 8px 30px rgba(46, 204, 113, 0.7);
         }
 
+        .restart-btn {
+            background: linear-gradient(135deg, #f39c12 0%, #f1c40f 50%, #f39c12 100%);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(243, 156, 18, 0.5);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(243, 156, 18, 0.7);
+        }
+
         .back-menu-btn {
             background: linear-gradient(135deg, #3498db 0%, #5dade2 50%, #3498db 100%);
             color: #fff;
@@ -495,6 +506,7 @@
             <h2 class="pause-menu-title">游戏暂停</h2>
             <div class="pause-menu-buttons">
                 <button class="pause-menu-btn resume-btn" id="resumeBtn">继续游戏</button>
+                <button class="pause-menu-btn restart-btn" id="pauseRestartBtn">重新开始</button>
                 <button class="pause-menu-btn back-menu-btn" id="pauseBackMenuBtn">返回菜单</button>
                 <button class="pause-menu-btn home-btn" id="pauseHomeBtn">返回主页</button>
             </div>
@@ -1220,6 +1232,11 @@
         document.getElementById('gamePauseBtn').addEventListener('click', showPauseMenu);
         document.getElementById('backHomeBtn').addEventListener('click', goBackHome);
         document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+        document.getElementById('pauseRestartBtn').addEventListener('click', function() {
+            hidePauseMenu();
+            backToMenu();
+            setTimeout(startGame, 100);
+        });
         document.getElementById('pauseBackMenuBtn').addEventListener('click', backToMenu);
         document.getElementById('pauseHomeBtn').addEventListener('click', goBackHome);
         document.getElementById('gameOverHomeBtn').addEventListener('click', goBackHome);
