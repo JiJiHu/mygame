@@ -1131,7 +1131,7 @@ function loadPuzzle() {
 
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${score.name || '匿名玩家'}</td>
+                    <td>${escapeHtml(score.name) || '匿名玩家'}</td>
                     <td>${minutes}:${seconds}</td>
                     <td>${score.errors}</td>
                     <td>${diffText}</td>
@@ -1145,6 +1145,13 @@ function loadPuzzle() {
         function hideLeaderboard() {
             const panel = document.getElementById('leaderboardPanel');
             panel.style.display = 'none';
+        }
+
+        // HTML转义函数，防止XSS
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         async function displayLeaderboard() {
@@ -1179,7 +1186,7 @@ function loadPuzzle() {
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 18px;">${medal}</span>
                                 <div>
-                                    <div style="font-weight: bold; color: var(--onepiece-black);">${score.name}</div>
+                                    <div style="font-weight: bold; color: var(--onepiece-black);">${escapeHtml(score.name)}</div>
                                     <div style="font-size: 12px; color: var(--onepiece-wood-dark);">${diffText}</div>
                                 </div>
                             </div>
