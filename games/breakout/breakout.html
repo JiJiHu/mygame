@@ -1180,7 +1180,7 @@
         }
 
         function goBackHome() {
-            if (gameActive && !gameOver) {
+            if (gameState === 'playing') {
                 const confirmMsg = '确定要退出游戏吗？当前进度将丢失。';
                 if (confirm(confirmMsg)) {
                     window.location.href = '../index.html';

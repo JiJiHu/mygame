@@ -810,9 +810,9 @@
             <div class="difficulty-section">
                 <p class="difficulty-label">选择难度</p>
                 <div class="difficulty-buttons">
-                    <button class="diff-btn active" data-diff="easy">简单</button>
+                    <button class="diff-btn" data-diff="easy">简单</button>
                     <button class="diff-btn" data-diff="medium">中等</button>
-                    <button class="diff-btn" data-diff="hard">困难</button>
+                    <button class="diff-btn active" data-diff="hard">困难</button>
                 </div>
             </div>
             
@@ -851,7 +851,7 @@
         
         // Game state
         let gameState = 'menu'; // menu, playing, paused, gameover
-        let difficulty = 'easy';
+        let difficulty = 'hard';
         let animationId = null;
         
         // Grid settings
@@ -881,11 +881,11 @@
         // Path definition (grid coordinates)
         let path = [];
         
-        // Difficulty settings
+        // Difficulty settings - EXTREME MODE
         const difficultySettings = {
             easy: { initialGold: 600, enemyHealthMult: 0.8, enemySpeedMult: 0.9 },
             medium: { initialGold: 500, enemyHealthMult: 1.0, enemySpeedMult: 1.0 },
-            hard: { initialGold: 400, enemyHealthMult: 1.3, enemySpeedMult: 1.2 }
+            hard: { initialGold: 200, enemyHealthMult: 2.5, enemySpeedMult: 1.8 }
         };
         
         // Tower types
@@ -952,46 +952,46 @@
             }
         };
         
-        // Enemy types
+        // Enemy types - EXTREME DIFFICULTY
         const enemyTypes = {
             normal: {
                 name: '普通海盗',
-                health: 30,
-                speed: 1.5,
-                reward: 8,
+                health: 60,
+                speed: 2.5,
+                reward: 5,
                 color: '#e74c3c',
                 radius: 12
             },
             fast: {
                 name: '快速海盗',
-                health: 15,
-                speed: 2.5,
-                reward: 12,
+                health: 30,
+                speed: 4.0,
+                reward: 8,
                 color: '#f39c12',
                 radius: 10
             },
             tank: {
                 name: '重装海盗',
-                health: 80,
-                speed: 0.8,
-                reward: 25,
+                health: 200,
+                speed: 1.2,
+                reward: 15,
                 color: '#8e44ad',
                 radius: 15
             },
             flying: {
                 name: '飞行海盗',
-                health: 25,
-                speed: 2.0,
-                reward: 20,
+                health: 50,
+                speed: 3.5,
+                reward: 12,
                 color: '#3498db',
                 radius: 11,
                 flying: true
             },
             boss: {
                 name: '海盗船长',
-                health: 300,
-                speed: 0.5,
-                reward: 100,
+                health: 800,
+                speed: 1.0,
+                reward: 50,
                 color: '#c0392b',
                 radius: 20,
                 boss: true
