@@ -1401,11 +1401,13 @@
                                 const odist = Math.sqrt(odx * odx + ody * ody);
                                 if (odist < proj.splashRadius * CELL_SIZE) {
                                     otherEnemy.health -= proj.damage * (1 - odist / (proj.splashRadius * CELL_SIZE));
+                                    updateUI();
                                 }
                             }
                         } else {
                             enemy.health -= proj.damage;
                             if (!proj.pierce) createParticles(proj.x, proj.y, proj.color, 3);
+                            updateUI();
                         }
                         
                         if (proj.pierce) {
@@ -1757,6 +1759,8 @@
             resizeCanvas();
             initPath();
             updateUI();
+            // Start first wave immediately
+            startWave();
             
             if (animationId) {
                 cancelAnimationFrame(animationId);
