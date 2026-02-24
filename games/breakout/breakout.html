@@ -1016,6 +1016,8 @@
             document.getElementById('gameOverMenu').classList.add('hidden');
             document.getElementById('gameUI').style.display = 'flex';
             document.getElementById('pauseIndicator').style.display = 'none';
+            document.getElementById('gameControls').classList.remove('controls-hidden');
+            document.getElementById('gameControls').classList.add('controls-visible');
             
             resizeCanvas();
             initPaddle();
@@ -1069,6 +1071,8 @@
             } else if (gameState === 'paused') {
                 gameState = 'playing';
                 document.getElementById('pauseIndicator').style.display = 'none';
+            document.getElementById('gameControls').classList.remove('controls-hidden');
+            document.getElementById('gameControls').classList.add('controls-visible');
             }
         }
         
@@ -1153,6 +1157,8 @@
                 gameState = 'paused';
                 document.getElementById('pauseMenu').classList.add('show');
                 document.getElementById('pauseIndicator').style.display = 'none';
+            document.getElementById('gameControls').classList.remove('controls-hidden');
+            document.getElementById('gameControls').classList.add('controls-visible');
             }
         }
 
@@ -1222,6 +1228,8 @@
             document.getElementById('gameOverMenu').classList.add('hidden');
             document.getElementById('gameUI').style.display = 'flex';
             document.getElementById('pauseIndicator').style.display = 'none';
+            document.getElementById('gameControls').classList.remove('controls-hidden');
+            document.getElementById('gameControls').classList.add('controls-visible');
             document.getElementById('gameControls').classList.remove('controls-hidden');
             document.getElementById('gameControls').classList.add('controls-visible');
 
