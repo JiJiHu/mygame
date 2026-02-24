@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>海盗连珠 - Color Lines</title>
+    <style>
+        :root {
+            --board-size: min(90vw, 450px);
+            --cell-size: calc(var(--board-size) / 9);
+            --pirate-gold: #d4af37;
+            --pirate-brown: #8b4513;
+            --pirate-dark: #1a0f0a;
+            --pirate-wood: #5d3a1a;
+            --pirate-ocean: #1a3a5c;
+            --ball-red: #e74c3c;
+            --ball-orange: #e67e22;
+            --ball-yellow: #f1c40f;
+            --ball-green: #27ae60;
+            --ball-blue: #3498db;
+            --ball-purple: #9b59b6;
+            --ball-cyan: #1abc9c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(180deg, #0a1628 0%, #1a3a5c 50%, #0d2840 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* 海洋波浪动画背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(26, 58, 92, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(13, 40, 64, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        /* 标题 */
+        .game-title {
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            color: var(--pirate-gold);
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(212, 175, 55, 0.5);
+            margin: 15px 0 10px;
+            letter-spacing: 3px;
+            position: relative;
+        }
+
+        .game-title::before,
+        .game-title::after {
+            content: '⚓';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .game-title::before { left: -40px; }
+        .game-title::after { right: -40px; transform: translateY(-50%) scaleX(-1); }
+
+        /* 信息栏 */
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: var(--board-size);
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #2d1810 0%, #1a0f0a 100%);
+            border: 3px solid var(--pirate-gold);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .score-display, .high-score-display {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 0.75rem;
+            color: #8b7355;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-value {
+            font-size: 1.5rem;
+            color: var(--pirate-gold);
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        /* 预览区 */
+        .preview-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-label {
+            font-size: 0.7rem;
+            color: #8b7355;
+            margin-right: 5px;
+        }
+
+        .preview-ball {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            animation: float 2s ease-in-out infinite;
+            box-shadow: 
+                inset -3px -3px 6px rgba(0, 0, 0, 0.4),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.3),
+                0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-ball:nth-child(2) { animation-delay: 0.2s; }
+        .preview-ball:nth-child(3) { animation-delay: 0.4s; }
+        .preview-ball:nth-child(4) { animation-delay: 0.6s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        /* 游戏棋盘 */
+        .board-container {
+            position: relative;
+            padding: 8px;
+            background: linear-gradient(135deg, #3d2415 0%, #2d1810 50%, #1a0f0a 100%);
+            border: 4px solid var(--pirate-gold);
+            border-radius: 12px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.6),
+                inset 0 2px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .board-container::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(9, var(--cell-size));
+            grid-template-rows: repeat(9, var(--cell-size));
+            gap: 2px;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(0, 0, 0, 0.1) 0px,
+                    rgba(0, 0, 0, 0.1) 2px,
+                    transparent 2px,
+                    transparent 8px
+                );
+        }
+
+        .cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background: linear-gradient(135deg, #4a3728 0%, #3d2e22 100%);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: visible;
+        }
+
+        .cell:hover {
+            background: linear-gradient(135deg, #5a4738 0%, #4d3e32 100%);
+            transform: scale(1.02);
+        }
+
+        .cell.selected {
+            background: linear-gradient(135deg, #6a5748 0%, #5d4e42 100%);
+            box-shadow: 
+                0 0 15px rgba(212, 175, 55, 0.5),
+                inset 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .cell.path-hint {
+            background: linear-gradient(135deg, #4a5a48 0%, #3d4e3a 100%);
+        }
+
+        /* 球样式 */
+        .ball {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            animation: ballAppear 0.3s ease-out;
+        }
+
+        .ball::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            width: 35%;
+            height: 35%;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .ball::after {
+            content: '';
+            position: absolute;
+            bottom: 15%;
+            right: 15%;
+            width: 20%;
+            height: 20%;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .ball.selected {
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+
+        .ball.red { 
+            background: radial-gradient(ellipse at 30% 30%, #ff6b6b, var(--ball-red) 50%, #c0392b); 
+            box-shadow: 0 3px 8px rgba(231, 76, 60, 0.5);
+        }
+        .ball.orange { 
+            background: radial-gradient(ellipse at 30% 30%, #ffa500, var(--ball-orange) 50%, #d35400); 
+            box-shadow: 0 3px 8px rgba(230, 126, 34, 0.5);
+        }
+        .ball.yellow { 
+            background: radial-gradient(ellipse at 30% 30%, #ffff00, var(--ball-yellow) 50%, #d4ac0d); 
+            box-shadow: 0 3px 8px rgba(241, 196, 15, 0.5);
+        }
+        .ball.green { 
+            background: radial-gradient(ellipse at 30% 30%, #2ecc71, var(--ball-green) 50%, #1e8449); 
+            box-shadow: 0 3px 8px rgba(39, 174, 96, 0.5);
+        }
+        .ball.blue { 
+            background: radial-gradient(ellipse at 30% 30%, #5dade2, var(--ball-blue) 50%, #2471a3); 
+            box-shadow: 0 3px 8px rgba(52, 152, 219, 0.5);
+        }
+        .ball.purple { 
+            background: radial-gradient(ellipse at 30% 30%, #bb8fce, var(--ball-purple) 50%, #7d3c98); 
+            box-shadow: 0 3px 8px rgba(155, 89, 182, 0.5);
+        }
+        .ball.cyan { 
+            background: radial-gradient(ellipse at 30% 30%, #48c9b0, var(--ball-cyan) 50%, #16a085); 
+            box-shadow: 0 3px 8px rgba(26, 188, 156, 0.5);
+        }
+
+        @keyframes ballAppear {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes ballRemove {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .ball.removing {
+            animation: ballRemove 0.4s ease-out forwards;
+        }
+
+        @keyframes ballMove {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9) translateY(-5px); }
+            100% { transform: scale(1); }
+        }
+
+        /* 爆炸粒子效果 */
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleExplode 0.6s ease-out forwards;
+        }
+
+        @keyframes particleExplode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* 按钮样式 */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-family: 'Georgia', serif;
+            color: var(--pirate-gold);
+            background: linear-gradient(135deg, #5d3a1a 0%, #3d2415 100%);
+            border: 2px solid var(--pirate-gold);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #6d4a2a 0%, #4d3425 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* 排行榜模态框 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #2d1810 0%, #1a0f0a 100%);
+            border: 3px solid var(--pirate-gold);
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 90vw;
+            width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalAppear 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes modalAppear {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-title {
+            text-align: center;
+            color: var(--pirate-gold);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .modal-title::before {
+            content: '🏆 ';
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            color: #8b7355;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--pirate-gold);
+        }
+
+        .leaderboard {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 3px solid var(--pirate-gold);
+            transition: transform 0.2s ease;
+        }
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+        }
+
+        .leaderboard-item.highlight {
+            background: rgba(212, 175, 55, 0.2);
+            border-left: 3px solid #fff;
+        }
+
+        .rank {
+            width: 30px;
+            font-weight: bold;
+            color: var(--pirate-gold);
+        }
+
+        .rank-1::before { content: '🥇 '; }
+        .rank-2::before { content: '🥈 '; }
+        .rank-3::before { content: '🥉 '; }
+
+        .player-name {
+            flex: 1;
+            color: #fff;
+            margin-left: 10px;
+        }
+
+        .player-score {
+            color: var(--pirate-gold);
+            font-weight: bold;
+        }
+
+        /* 游戏结束界面 */
+        .game-over-content {
+            text-align: center;
+        }
+
+        .game-over-score {
+            font-size: 3rem;
+            color: var(--pirate-gold);
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--pirate-gold);
+            border-radius: 8px;
+            color: #fff;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .name-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .name-input::placeholder {
+            color: #8b7355;
+        }
+
+        /* 消息提示 */
+        .message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #2d1810 0%, #1a0f0a 100%);
+            border: 2px solid var(--pirate-gold);
+            border-radius: 10px;
+            color: var(--pirate-gold);
+            font-size: 1.1rem;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .message.show {
+            opacity: 1;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 500px) {
+            :root {
+                --board-size: 96vw;
+            }
+
+            .game-title {
+                margin: 10px 0;
+            }
+
+            .game-title::before,
+            .game-title::after {
+                display: none;
+            }
+
+            .info-bar {
+                width: var(--board-size);
+                padding: 8px 10px;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .preview-ball {
+                width: 22px;
+                height: 22px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .button-group {
+                gap: 10px;
+            }
+        }
+
+        @media (max-height: 700px) {
+            .game-title {
+                margin: 8px 0;
+                font-size: 1.5rem;
+            }
+
+            .info-bar {
+                margin-bottom: 5px;
+                padding: 5px 10px;
+            }
+
+            .board-container {
+                padding: 5px;
+            }
+        }
+
+        /* 无障碍优化 */
+        @media (prefers-reduced-motion: reduce) {
+            .ball,
+            .preview-ball,
+            .modal {
+                animation: none;
+            }
+            
+            .ball.selected {
+                animation: none;
+                box-shadow: 0 0 0 3px var(--pirate-gold);
+            }
+        }
+
+        /* 得分动画 */
+        .score-popup {
+            position: absolute;
+            color: var(--pirate-gold);
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+            pointer-events: none;
+            animation: scoreFloat 1s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes scoreFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-40px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="game-title">海盗连珠</h1>
+        
+        <div class="info-bar">
+            <div class="score-display">
+                <div class="score-label">得分</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            
+            <div class="preview-container">
+                <span class="preview-label">下一轮:</span>
+                <div class="preview-ball" id="preview1"></div>
+                <div class="preview-ball" id="preview2"></div>
+                <div class="preview-ball" id="preview3"></div>
+            </div>
+            
+            <div class="high-score-display">
+                <div class="score-label">最高分</div>
+                <div class="score-value" id="highScore">0</div>
+            </div>
+        </div>
+
+        <div class="board-container">
+            <div class="board" id="board"></div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn" id="newGameBtn">新游戏</button>
+            <button class="btn" id="leaderboardBtn">排行榜</button>
+        </div>
+    </div>
+
+    <!-- 排行榜模态框 -->
+    <div class="modal-overlay" id="leaderboardModal">
+        <div class="modal">
+            <span class="modal-close" id="closeLeaderboard">&times;</span>
+            <h2 class="modal-title">排行榜</h2>
+            <ul class="leaderboard" id="leaderboardList"></ul>
+        </div>
+    </div>
+
+    <!-- 游戏结束模态框 -->
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="modal">
+            <div class="game-over-content">
+                <h2 class="modal-title">游戏结束!</h2>
+                <div class="game-over-score" id="finalScore">0</div>
+                <input type="text" class="name-input" id="playerName" placeholder="输入你的名字" maxlength="10">
+                <button class="btn" id="saveScoreBtn">保存分数</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div class="message" id="message"></div>
+
+    <script>
+        // 游戏核心类
+        class ColorLines {
+            constructor() {
+                this.BOARD_SIZE = 9;
+                this.COLORS = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'cyan'];
+                this.BALLS_PER_TURN = 3;
+                this.MIN_LINE_LENGTH = 5;
+                this.POINTS_PER_BALL = 2;
+                
+                this.board = [];
+                this.score = 0;
+                this.selectedCell = null;
+                this.isAnimating = false;
+                this.nextBalls = [];
+                this.gameActive = false;
+                
+                this.initElements();
+                this.initEventListeners();
+                this.loadHighScore();
+                this.newGame();
+            }
+
+            initElements() {
+                this.boardElement = document.getElementById('board');
+                this.scoreElement = document.getElementById('score');
+                this.highScoreElement = document.getElementById('highScore');
+                this.previewElements = [
+                    document.getElementById('preview1'),
+                    document.getElementById('preview2'),
+                    document.getElementById('preview3')
+                ];
+                this.leaderboardModal = document.getElementById('leaderboardModal');
+                this.gameOverModal = document.getElementById('gameOverModal');
+                this.leaderboardList = document.getElementById('leaderboardList');
+                this.messageElement = document.getElementById('message');
+            }
+
+            initEventListeners() {
+                document.getElementById('newGameBtn').addEventListener('click', () => this.newGame());
+                document.getElementById('leaderboardBtn').addEventListener('click', () => this.showLeaderboard());
+                document.getElementById('closeLeaderboard').addEventListener('click', () => this.hideLeaderboard());
+                document.getElementById('saveScoreBtn').addEventListener('click', () => this.saveScore());
+                
+                // 点击模态框外部关闭
+                this.leaderboardModal.addEventListener('click', (e) => {
+                    if (e.target === this.leaderboardModal) this.hideLeaderboard();
+                });
+                this.gameOverModal.addEventListener('click', (e) => {
+                    if (e.target === this.gameOverModal) this.hideGameOver();
+                });
+
+                // 键盘支持
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.hideLeaderboard();
+                        this.hideGameOver();
+                    }
+                    if (e.key === 'Enter' && this.gameOverModal.classList.contains('show')) {
+                        this.saveScore();
+                    }
+                });
+            }
+
+            newGame() {
+                this.board = Array(this.BOARD_SIZE).fill(null).map(() => 
+                    Array(this.BOARD_SIZE).fill(null)
+                );
+                this.score = 0;
+                this.selectedCell = null;
+                this.isAnimating = false;
+                this.gameActive = true;
+                
+                this.updateScore();
+                this.generateNextBalls();
+                this.renderBoard();
+                
+                // 初始添加球
+                setTimeout(() => this.addNewBalls(), 300);
+            }
+
+            generateNextBalls() {
+                this.nextBalls = [];
+                for (let i = 0; i < this.BALLS_PER_TURN; i++) {
+                    this.nextBalls.push(this.getRandomColor());
+                }
+                this.updatePreview();
+            }
+
+            getRandomColor() {
+                return this.COLORS[Math.floor(Math.random() * this.COLORS.length)];
+            }
+
+            updatePreview() {
+                this.previewElements.forEach((el, i) => {
+                    const color = this.nextBalls[i];
+                    el.style.background = '';
+                    el.className = 'preview-ball';
+                    if (color) {
+                        // 创建渐变背景
+                        const gradients = {
+                            red: 'radial-gradient(ellipse at 30% 30%, #ff6b6b, #e74c3c 50%, #c0392b)',
+                            orange: 'radial-gradient(ellipse at 30% 30%, #ffa500, #e67e22 50%, #d35400)',
+                            yellow: 'radial-gradient(ellipse at 30% 30%, #ffff00, #f1c40f 50%, #d4ac0d)',
+                            green: 'radial-gradient(ellipse at 30% 30%, #2ecc71, #27ae60 50%, #1e8449)',
+                            blue: 'radial-gradient(ellipse at 30% 30%, #5dade2, #3498db 50%, #2471a3)',
+                            purple: 'radial-gradient(ellipse at 30% 30%, #bb8fce, #9b59b6 50%, #7d3c98)',
+                            cyan: 'radial-gradient(ellipse at 30% 30%, #48c9b0, #1abc9c 50%, #16a085)'
+                        };
+                        el.style.background = gradients[color];
+                    }
+                });
+            }
+
+            renderBoard() {
+                this.boardElement.innerHTML = '';
+                
+                for (let row = 0; row < this.BOARD_SIZE; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        if (this.board[row][col]) {
+                            const ball = this.createElement('div', 'ball ' + this.board[row][col]);
+                            cell.appendChild(ball);
+                        }
+                        
+                        cell.addEventListener('click', () => this.handleCellClick(row, col));
+                        this.boardElement.appendChild(cell);
+                    }
+                }
+            }
+
+            handleCellClick(row, col) {
+                if (this.isAnimating || !this.gameActive) return;
+
+                const cell = this.getCell(row, col);
+                const hasBall = this.board[row][col] !== null;
+
+                if (this.selectedCell) {
+                    if (hasBall) {
+                        // 选择另一个球
+                        this.selectCell(row, col);
+                    } else {
+                        // 尝试移动
+                        this.tryMove(this.selectedCell.row, this.selectedCell.col, row, col);
+                    }
+                } else if (hasBall) {
+                    this.selectCell(row, col);
+                }
+            }
+
+            selectCell(row, col) {
+                // 清除之前的选择
+                document.querySelectorAll('.cell.selected').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('.ball.selected').forEach(b => b.classList.remove('selected'));
+
+                this.selectedCell = { row, col };
+                
+                const cell = this.getCell(row, col);
+                cell.classList.add('selected');
+                
+                const ball = cell.querySelector('.ball');
+                if (ball) ball.classList.add('selected');
+
+                // 显示可移动路径提示
+                this.showPathHints(row, col);
+            }
+
+            showPathHints(fromRow, fromCol) {
+                // 清除之前的路径提示
+                document.querySelectorAll('.cell.path-hint').forEach(c => c.classList.remove('path-hint'));
+
+                // 查找所有可达位置
+                for (let row = 0; row < this.BOARD_SIZE; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        if (!this.board[row][col] && this.findPath(fromRow, fromCol, row, col)) {
+                            this.getCell(row, col).classList.add('path-hint');
+                        }
+                    }
+                }
+            }
+
+            clearPathHints() {
+                document.querySelectorAll('.cell.path-hint').forEach(c => c.classList.remove('path-hint'));
+            }
+
+            getCell(row, col) {
+                return this.boardElement.children[row * this.BOARD_SIZE + col];
+            }
+
+            tryMove(fromRow, fromCol, toRow, toCol) {
+                const path = this.findPath(fromRow, fromCol, toRow, toCol);
+                
+                if (path) {
+                    this.animateMove(fromRow, fromCol, toRow, toCol, path);
+                } else {
+                    this.showMessage('无法到达该位置!');
+                }
+            }
+
+            findPath(startRow, startCol, endRow, endCol) {
+                // BFS路径查找
+                const queue = [[startRow, startCol, []]];
+                const visited = new Set();
+                visited.add(`${startRow},${startCol}`);
+
+                const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+                while (queue.length > 0) {
+                    const [row, col, path] = queue.shift();
+                    
+                    if (row === endRow && col === endCol) {
+                        return [...path, [row, col]];
+                    }
+
+                    for (const [dr, dc] of directions) {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        const key = `${newRow},${newCol}`;
+
+                        if (
+                            newRow >= 0 && newRow < this.BOARD_SIZE &&
+                            newCol >= 0 && newCol < this.BOARD_SIZE &&
+                            !visited.has(key) &&
+                            (this.board[newRow][newCol] === null || (newRow === endRow && newCol === endCol))
+                        ) {
+                            visited.add(key);
+                            queue.push([newRow, newCol, [...path, [row, col]]]);
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            async animateMove(fromRow, fromCol, toRow, toCol, path) {
+                this.isAnimating = true;
+                this.clearPathHints();
+                
+                const color = this.board[fromRow][fromCol];
+                this.board[fromRow][fromCol] = null;
+                
+                // 移除起点球
+                const fromCell = this.getCell(fromRow, fromCol);
+                const fromBall = fromCell.querySelector('.ball');
+                if (fromBall) fromBall.remove();
+                fromCell.classList.remove('selected');
+
+                // 路径动画
+                for (let i = 1; i < path.length; i++) {
+                    const [row, col] = path[i];
+                    const cell = this.getCell(row, col);
+                    
+                    // 创建临时球
+                    const ball = document.createElement('div');
+                    ball.className = 'ball ' + color;
+                    ball.style.animation = 'none';
+                    cell.appendChild(ball);
+                    
+                    await this.delay(50);
+                    
+                    // 如果不是终点，移除球
+                    if (i < path.length - 1) {
+                        ball.remove();
+                    }
+                }
+
+                // 更新棋盘
+                this.board[toRow][toCol] = color;
+                
+                // 检查消除
+                this.selectedCell = null;
+                const removed = await this.checkAndRemoveLines(toRow, toCol);
+                
+                if (!removed) {
+                    // 没有消除，添加新球
+                    await this.addNewBalls();
+                }
+                
+                this.isAnimating = false;
+                
+                // 检查游戏结束
+                this.checkGameOver();
+            }
+
+            async checkAndRemoveLines(row, col) {
+                const color = this.board[row][col];
+                if (!color) return false;
+
+                const lines = this.findLines(row, col, color);
+                
+                if (lines.length > 0) {
+                    const allCells = new Set();
+                    lines.forEach(line => line.forEach(cell => allCells.add(`${cell[0]},${cell[1]}`)));
+                    
+                    const points = allCells.size * this.POINTS_PER_BALL;
+                    this.score += points;
+                    this.updateScore();
+                    
+                    // 显示得分动画
+                    this.showScorePopup(row, col, points);
+                    
+                    // 消除动画
+                    await this.animateRemoval([...allCells].map(key => {
+                        const [r, c] = key.split(',').map(Number);
+                        return [r, c];
+                    }));
+                    
+                    return true;
+                }
+                
+                return false;
+            }
+
+            findLines(row, col, color) {
+                const lines = [];
+                const directions = [
+                    [[0, 1], [0, -1]],   // 水平
+                    [[1, 0], [-1, 0]],   // 垂直
+                    [[1, 1], [-1, -1]], // 对角线
+                    [[1, -1], [-1, 1]]  // 反对角线
+                ];
+
+                for (const [dir1, dir2] of directions) {
+                    const line = [[row, col]];
+                    
+                    // 方向1
+                    for (let i = 1; i < this.BOARD_SIZE; i++) {
+                        const newRow = row + dir1[0] * i;
+                        const newCol = col + dir1[1] * i;
+                        
+                        if (
+                            newRow >= 0 && newRow < this.BOARD_SIZE &&
+                            newCol >= 0 && newCol < this.BOARD_SIZE &&
+                            this.board[newRow][newCol] === color
+                        ) {
+                            line.push([newRow, newCol]);
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // 方向2
+                    for (let i = 1; i < this.BOARD_SIZE; i++) {
+                        const newRow = row + dir2[0] * i;
+                        const newCol = col + dir2[1] * i;
+                        
+                        if (
+                            newRow >= 0 && newRow < this.BOARD_SIZE &&
+                            newCol >= 0 && newCol < this.BOARD_SIZE &&
+                            this.board[newRow][newCol] === color
+                        ) {
+                            line.push([newRow, newCol]);
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    if (line.length >= this.MIN_LINE_LENGTH) {
+                        lines.push(line);
+                    }
+                }
+                
+                return lines;
+            }
+
+            async animateRemoval(cells) {
+                // 创建粒子效果
+                for (const [row, col] of cells) {
+                    const cell = this.getCell(row, col);
+                    const ball = cell.querySelector('.ball');
+                    const color = this.board[row][col];
+                    
+                    if (ball) {
+                        ball.classList.add('removing');
+                        this.createParticles(cell, color);
+                    }
+                }
+                
+                await this.delay(400);
+                
+                // 移除球
+                for (const [row, col] of cells) {
+                    this.board[row][col] = null;
+                    const cell = this.getCell(row, col);
+                    const ball = cell.querySelector('.ball');
+                    if (ball) ball.remove();
+                }
+            }
+
+            createParticles(cell, color) {
+                const rect = cell.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const colors = {
+                    red: '#e74c3c',
+                    orange: '#e67e22',
+                    yellow: '#f1c40f',
+                    green: '#27ae60',
+                    blue: '#3498db',
+                    purple: '#9b59b6',
+                    cyan: '#1abc9c'
+                };
+                
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.background = colors[color];
+                    particle.style.left = centerX + 'px';
+                    particle.style.top = centerY + 'px';
+                    
+                    const angle = (i / 8) * Math.PI * 2;
+                    const distance = 30 + Math.random() * 20;
+                    particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                    particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                    
+                    cell.appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 600);
+                }
+            }
+
+            showScorePopup(row, col, points) {
+                const cell = this.getCell(row, col);
+                const rect = cell.getBoundingClientRect();
+                
+                const popup = document.createElement('div');
+                popup.className = 'score-popup';
+                popup.textContent = '+' + points;
+                popup.style.left = rect.left + rect.width / 2 + 'px';
+                popup.style.top = rect.top + 'px';
+                
+                document.body.appendChild(popup);
+                
+                setTimeout(() => popup.remove(), 1000);
+            }
+
+            async addNewBalls() {
+                const emptyCells = [];
+                for (let row = 0; row < this.BOARD_SIZE; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        if (!this.board[row][col]) {
+                            emptyCells.push([row, col]);
+                        }
+                    }
+                }
+
+                if (emptyCells.length === 0) return;
+
+                // 随机选择位置
+                const numBalls = Math.min(this.BALLS_PER_TURN, emptyCells.length);
+                const positions = this.shuffle([...emptyCells]).slice(0, numBalls);
+
+                for (let i = 0; i < positions.length; i++) {
+                    const [row, col] = positions[i];
+                    const color = this.nextBalls[i];
+                    
+                    this.board[row][col] = color;
+                    
+                    // 更新UI
+                    const cell = this.getCell(row, col);
+                    const ball = document.createElement('div');
+                    ball.className = 'ball ' + color;
+                    cell.appendChild(ball);
+                    
+                    await this.delay(100);
+                    
+                    // 检查消除
+                    await this.checkAndRemoveLines(row, col);
+                }
+
+                // 生成下一组球
+                this.generateNextBalls();
+            }
+
+            shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            checkGameOver() {
+                const emptyCells = [];
+                for (let row = 0; row < this.BOARD_SIZE; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        if (!this.board[row][col]) {
+                            emptyCells.push([row, col]);
+                        }
+                    }
+                }
+
+                if (emptyCells.length === 0) {
+                    this.gameActive = false;
+                    this.showGameOver();
+                }
+            }
+
+            updateScore() {
+                this.scoreElement.textContent = this.score;
+                
+                if (this.score > parseInt(this.highScoreElement.textContent)) {
+                    this.highScoreElement.textContent = this.score;
+                    localStorage.setItem('colorLinesHighScore', this.score);
+                }
+            }
+
+            loadHighScore() {
+                const highScore = localStorage.getItem('colorLinesHighScore') || 0;
+                this.highScoreElement.textContent = highScore;
+            }
+
+            showMessage(text) {
+                this.messageElement.textContent = text;
+                this.messageElement.classList.add('show');
+                
+                setTimeout(() => {
+                    this.messageElement.classList.remove('show');
+                }, 2000);
+            }
+
+            showLeaderboard() {
+                const leaderboard = this.getLeaderboard();
+                this.leaderboardList.innerHTML = '';
+                
+                if (leaderboard.length === 0) {
+                    this.leaderboardList.innerHTML = '<li class="leaderboard-item"><span class="player-name" style="text-align: center; width: 100%;">暂无记录</span></li>';
+                } else {
+                    leaderboard.forEach((entry, index) => {
+                        const li = document.createElement('li');
+                        li.className = 'leaderboard-item';
+                        if (entry.isNew) li.classList.add('highlight');
+                        
+                        const rankClass = index < 3 ? `rank rank-${index + 1}` : 'rank';
+                        
+                        li.innerHTML = `
+                            <span class="${rankClass}">${index + 1}</span>
+                            <span class="player-name">${this.escapeHtml(entry.name)}</span>
+                            <span class="player-score">${entry.score}</span>
+                        `;
+                        
+                        this.leaderboardList.appendChild(li);
+                    });
+                }
+                
+                this.leaderboardModal.classList.add('show');
+            }
+
+            hideLeaderboard() {
+                this.leaderboardModal.classList.remove('show');
+            }
+
+            getLeaderboard() {
+                const data = localStorage.getItem('colorLinesLeaderboard');
+                return data ? JSON.parse(data) : [];
+            }
+
+            saveScoreToLeaderboard(name, score) {
+                const leaderboard = this.getLeaderboard();
+                const newEntry = { name, score, date: Date.now(), isNew: true };
+                
+                // 移除之前的"新增"标记
+                leaderboard.forEach(entry => delete entry.isNew);
+                
+                leaderboard.push(newEntry);
+                leaderboard.sort((a, b) => b.score - a.score);
+                
+                // 只保留前10名
+                if (leaderboard.length > 10) {
+                    leaderboard.length = 10;
+                }
+                
+                localStorage.setItem('colorLinesLeaderboard', JSON.stringify(leaderboard));
+            }
+
+            showGameOver() {
+                document.getElementById('finalScore').textContent = this.score;
+                document.getElementById('playerName').value = '';
+                this.gameOverModal.classList.add('show');
+                
+                setTimeout(() => {
+                    document.getElementById('playerName').focus();
+                }, 300);
+            }
+
+            hideGameOver() {
+                this.gameOverModal.classList.remove('show');
+            }
+
+            saveScore() {
+                const nameInput = document.getElementById('playerName');
+                let name = nameInput.value.trim();
+                
+                if (!name) {
+                    name = '海盗侠';
+                }
+                
+                this.saveScoreToLeaderboard(name, this.score);
+                this.hideGameOver();
+                this.showLeaderboard();
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // 使用辅助方法替代DOM原型扩展
+        function createElement(tag, className) {
+            const el = document.createElement(tag);
+            if (className) el.className = className;
+            return el;
+        }
+
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', () => {
+            new ColorLines();
+        });
+    </script>
+</body>
+</html>
