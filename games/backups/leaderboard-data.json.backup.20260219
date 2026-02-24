@@ -334,6 +334,42 @@
   ],
   "sokoban": [
     {
+      "playerName": "搬运大师",
+      "score": 0,
+      "moves": 0,
+      "pushes": 1,
+      "metadata": {
+        "level": 1
+      },
+      "name": "搬运大师",
+      "date": "2026-02-13T04:11:09.615Z",
+      "timestamp": 1770955869615
+    },
+    {
+      "playerName": "狐狸猫",
+      "score": 14,
+      "moves": 14,
+      "pushes": 7,
+      "metadata": {
+        "level": 3
+      },
+      "name": "狐狸猫",
+      "date": "2026-02-13T01:06:21.899Z",
+      "timestamp": 1770944781899
+    },
+    {
+      "playerName": "搬运大师",
+      "score": 17,
+      "moves": 17,
+      "pushes": 3,
+      "metadata": {
+        "level": 8
+      },
+      "name": "搬运大师",
+      "date": "2026-02-13T04:11:21.053Z",
+      "timestamp": 1770955881053
+    },
+    {
       "playerName": "狐狸猫",
       "score": 17,
       "moves": 17,
@@ -344,6 +380,18 @@
       "name": "狐狸猫",
       "date": "2026-02-12T07:05:20.213Z",
       "timestamp": 1770879920213
+    },
+    {
+      "playerName": "狐狸猫",
+      "score": 18,
+      "moves": 18,
+      "pushes": 5,
+      "metadata": {
+        "level": 4
+      },
+      "name": "狐狸猫",
+      "date": "2026-02-13T01:06:35.884Z",
+      "timestamp": 1770944795884
     },
     {
       "playerName": "测试玩家",

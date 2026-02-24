@@ -324,12 +324,12 @@ tail -f /tmp/leaderboard-server.log
 
 ## 数据备份
 
-排行榜数据存储在：`/root/myopencode/games/leaderboard-data.json`
+排行榜数据存储在：`/root/mygame/games/leaderboard-data.json`
 
 **备份脚本：**
 ```bash
-cp /root/myopencode/games/leaderboard-data.json \
-   /root/myopencode/games/leaderboard-data.json.backup.$(date +%Y%m%d_%H%M%S)
+cp /root/mygame/games/leaderboard-data.json \
+   /root/mygame/games/leaderboard-data.json.backup.$(date +%Y%m%d_%H%M%S)
 ```
 
 ---
@@ -385,7 +385,7 @@ cp /root/myopencode/games/leaderboard-data.json \
 
 安装依赖：
 ```bash
-cd /root/myopencode/games
+cd /root/mygame/games
 npm install
 ```
 

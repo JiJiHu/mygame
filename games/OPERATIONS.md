@@ -5,7 +5,7 @@
 **服务器：** 阿里云ECS
 **操作系统：** Linux 6.8.0-90-generic (x64)
 **Node版本：** v22.22.0
-**运行目录：** /root/myopencode/games
+**运行目录：** /root/mygame/games
 
 ---
 
@@ -21,7 +21,7 @@
 - 内网：http://172.31.3.233:8080
 
 **数据文件：**
-- 排行榜数据：/root/myopencode/games/leaderboard-data.json
+- 排行榜数据：/root/mygame/games/leaderboard-data.json
 - 服务器日志：/tmp/game-server.log
 
 ---
@@ -80,11 +80,11 @@
 - 保留最近7天的备份
 - 备份文件命名：`leaderboard-data.json.backup.YYYYMMDD`
 
-**备份目录：** `/root/myopencode/games/backups/`
+**备份目录：** `/root/mygame/games/backups/`
 
 **恢复流程：**
 ```bash
-cd ~/myopencode/games
+cd ~/mygame/games
 cp backups/leaderboard-data.json.backup.20260209 leaderboard-data.json
 ./stop-server.sh && ./start-server.sh
 ```
@@ -257,7 +257,7 @@ gzip /tmp/game-server.log.$DATE
 
 - **WhatsApp通知:** +5511996909894
 - **本地日志:** /tmp/game-server.log
-- **备份数据:** /root/myopencode/games/backups/
+- **备份数据:** /root/mygame/games/backups/
 
 ---
 

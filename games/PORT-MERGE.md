@@ -79,13 +79,13 @@ const API = window.location.origin + '/api/leaderboard/snake';
 
 **启动服务：**
 ```bash
-cd ~/myopencode/games
+cd ~/mygame/games
 ./start-server.sh
 ```
 
 **停止服务：**
 ```bash
-cd ~/myopencode/games
+cd ~/mygame/games
 ./stop-server.sh
 ```
 
@@ -209,7 +209,7 @@ git checkout leaderboard-server.js start-leaderboard.sh stop-leaderboard.sh
 🌐 本地访问: http://localhost:8080
 🌐 外网访问: http://150.40.177.181:8080
 
-📁 静态文件: /root/myopencode/games
+📁 静态文件: /root/mygame/games
 📊 排行榜API: http://0.0.0.0:8080/api/leaderboard/:game
 ❤️  健康检查: http://0.0.0.0:8080/api/health
 

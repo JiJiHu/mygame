@@ -1,6 +1,24 @@
 {
   "snake": [
     {
+      "name": "狐狸猫",
+      "score": 400,
+      "level": 9,
+      "difficulty": "easy",
+      "time": 101,
+      "date": "2026-02-11T09:04:52.298Z",
+      "timestamp": 1770800692298
+    },
+    {
+      "name": "狐狸猫",
+      "score": 300,
+      "level": 7,
+      "difficulty": "easy",
+      "time": 99,
+      "date": "2026-02-10T01:24:10.590Z",
+      "timestamp": 1770686650590
+    },
+    {
       "name": "优化测试",
       "score": 200,
       "date": "2026-02-09T10:04:16.002Z",
@@ -290,19 +308,115 @@
       "score": 0,
       "date": "2026-02-09T10:05:32.550Z",
       "timestamp": 1770631532550
-    },
-    {
-      "name": "测试46",
-      "score": 0,
-      "date": "2026-02-09T10:05:32.556Z",
-      "timestamp": 1770631532556
-    },
-    {
-      "name": "测试47",
-      "score": 0,
-      "date": "2026-02-09T10:05:32.562Z",
-      "timestamp": 1770631532562
     }
   ],
-  "sudoku": []
+  "sudoku": [
+    {
+      "name": "狐狸猫",
+      "time": 272,
+      "errors": 0,
+      "difficulty": "easy",
+      "date": "2026-02-10T10:43:31.729Z",
+      "timestamp": 1770720211729
+    }
+  ],
+  "minesweeper": [
+    {
+      "playerName": "测试玩家",
+      "score": 60,
+      "metadata": {
+        "difficulty": "beginner"
+      },
+      "name": "测试玩家",
+      "date": "2026-02-12T02:39:23.738Z",
+      "timestamp": 1770863963738
+    }
+  ],
+  "sokoban": [
+    {
+      "playerName": "搬运大师",
+      "score": 0,
+      "moves": 0,
+      "pushes": 1,
+      "metadata": {
+        "level": 1
+      },
+      "name": "搬运大师",
+      "date": "2026-02-13T04:11:09.615Z",
+      "timestamp": 1770955869615
+    },
+    {
+      "playerName": "狐狸猫",
+      "score": 14,
+      "moves": 14,
+      "pushes": 7,
+      "metadata": {
+        "level": 3
+      },
+      "name": "狐狸猫",
+      "date": "2026-02-13T01:06:21.899Z",
+      "timestamp": 1770944781899
+    },
+    {
+      "playerName": "搬运大师",
+      "score": 17,
+      "moves": 17,
+      "pushes": 3,
+      "metadata": {
+        "level": 8
+      },
+      "name": "搬运大师",
+      "date": "2026-02-13T04:11:21.053Z",
+      "timestamp": 1770955881053
+    },
+    {
+      "playerName": "狐狸猫",
+      "score": 17,
+      "moves": 17,
+      "pushes": 5,
+      "metadata": {
+        "level": 2
+      },
+      "name": "狐狸猫",
+      "date": "2026-02-12T07:05:20.213Z",
+      "timestamp": 1770879920213
+    },
+    {
+      "playerName": "狐狸猫",
+      "score": 18,
+      "moves": 18,
+      "pushes": 5,
+      "metadata": {
+        "level": 4
+      },
+      "name": "狐狸猫",
+      "date": "2026-02-13T01:06:35.884Z",
+      "timestamp": 1770944795884
+    },
+    {
+      "playerName": "测试玩家",
+      "moves": 45,
+      "pushes": 12,
+      "score": 45,
+      "metadata": {
+        "level": 1
+      },
+      "name": "测试玩家",
+      "date": "2026-02-12T02:44:56.431Z",
+      "timestamp": 1770864296431
+    }
+  ],
+  "sliding-puzzle": [
+    {
+      "playerName": "狐狸猫",
+      "score": 31,
+      "metadata": {
+        "size": 3,
+        "time": 37
+      },
+      "name": "狐狸猫",
+      "date": "2026-02-12T03:27:23.472Z",
+      "timestamp": 1770866843472
+    }
+  ]
 }

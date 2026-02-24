@@ -1,0 +1,21 @@
+{
+  "last_backup": {
+    "date": "2026-02-21",
+    "time": "03:00:15",
+    "timestamp": "2026-02-21 03:00:15",
+    "status": "success",
+    "file": "leaderboard-data.json.backup.20260221",
+    "size": "8.9K",
+    "bytes": 9110,
+    "location": "/root/mygame/games/backups/leaderboard-data.json.backup.20260221",
+    "total_backups": 9,
+    "old_backups_cleaned": 0
+  },
+  "backup_history": [
+    {
+      "date": "2026-02-21",
+      "status": "success",
+      "size": "8.9K"
+    }
+  ]
+}

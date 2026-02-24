@@ -2,7 +2,7 @@
 
 ## 概览
 - 审查日期：2026-02-14
-- 项目路径：/root/myopencode/games
+- 项目路径：/root/mygame/games
 
 ## 发现的问题
 
