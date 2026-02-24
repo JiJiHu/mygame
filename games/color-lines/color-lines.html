@@ -661,6 +661,7 @@
         <div class="button-group">
             <a href="../../index.html" class="btn home-btn">🏠 返回主页</a>
             <button class="btn" id="newGameBtn">新游戏</button>
+            <button class="btn" id="undoBtn" style="display: none;">撤回</button>
             <button class="btn" id="leaderboardBtn">排行榜</button>
         </div>
     </div>
@@ -705,6 +706,8 @@
                 this.isAnimating = false;
                 this.nextBalls = [];
                 this.gameActive = false;
+                this.history = [];
+                this.maxHistory = 15;
                 
                 this.initElements();
                 this.initEventListeners();
@@ -729,6 +732,7 @@
 
             initEventListeners() {
                 document.getElementById('newGameBtn').addEventListener('click', () => this.newGame());
+                document.getElementById('undoBtn').addEventListener('click', () => this.undo());
                 document.getElementById('leaderboardBtn').addEventListener('click', () => this.showLeaderboard());
                 document.getElementById('closeLeaderboard').addEventListener('click', () => this.hideLeaderboard());
                 document.getElementById('saveScoreBtn').addEventListener('click', () => this.saveScore());
@@ -761,6 +765,7 @@
                 this.selectedCell = null;
                 this.isAnimating = false;
                 this.gameActive = true;
+                this.updateUndoButton();
                 
                 this.updateScore();
                 this.generateNextBalls();
@@ -975,6 +980,9 @@
                 
                 // 检查游戏结束
                 this.checkGameOver();
+                
+                // 保存历史状态
+                this.saveState();
             }
 
             async checkAndRemoveLines(row, col) {
@@ -1302,6 +1310,41 @@
                 return div.innerHTML;
             }
 
+
+            saveState() {
+                const state = {
+                    board: this.board.map(row => [...row]),
+                    score: this.score,
+                    nextBalls: [...this.nextBalls]
+                };
+                this.history.push(state);
+                if (this.history.length > this.maxHistory) {
+                    this.history.shift();
+                }
+                this.updateUndoButton();
+            }
+
+            undo() {
+                if (this.history.length === 0 || this.isAnimating) return;
+                
+                const state = this.history.pop();
+                this.board = state.board;
+                this.score = state.score;
+                this.nextBalls = state.nextBalls;
+                this.selectedCell = null;
+                
+                this.updateScore();
+                this.renderBoard();
+                this.renderNextBalls();
+                this.updateUndoButton();
+            }
+
+            updateUndoButton() {
+                const undoBtn = document.getElementById('undoBtn');
+                if (undoBtn) {
+                    undoBtn.style.display = this.history.length > 0 ? 'inline-block' : 'none';
+                }
+            }
             delay(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
