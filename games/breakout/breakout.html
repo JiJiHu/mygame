@@ -26,7 +26,6 @@
         }
         
         #gameContainer {
-            position: relative;
             width: 100%;
             max-width: 800px;
             height: 100vh;
@@ -389,7 +388,7 @@
             color: #0a1628;
             line-height: 50px;
             text-align: center;
-            z-index: 60;
+            z-index: 150;
             transition: all 0.3s;
             pointer-events: auto;
         }
@@ -414,7 +413,7 @@
             color: #fff;
             line-height: 40px;
             text-align: center;
-            z-index: 60;
+            z-index: 150;
             transition: all 0.3s;
             pointer-events: auto;
         }
@@ -435,11 +434,11 @@
         }
 
         .controls-hidden {
-            display: none !important;
+            display: none;
         }
 
         .controls-visible {
-            display: flex !important;
+            display: flex;
         }
 
         #gameControls > * {
