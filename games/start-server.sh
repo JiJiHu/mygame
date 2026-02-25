@@ -3,7 +3,7 @@
 
 echo "🎮 启动游戏服务器..."
 
-cd /root/myopencode/games
+cd /root/mygame/games
 
 # ===== 停止旧服务 =====
 # 停止Python HTTP服务器（如果还在运行）
