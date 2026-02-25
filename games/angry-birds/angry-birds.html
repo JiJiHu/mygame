@@ -636,6 +636,12 @@
 
         // ==================== 初始化 ====================
         function init() {
+            // 检查 Matter.js 是否加载
+            if (typeof Matter === 'undefined') {
+                alert('❌ 错误：Matter.js 物理引擎未加载！\n\n请检查网络连接，或手动下载并引用本地的 Matter.js 文件。');
+                return;
+            }
+
             // 初始化 Matter.js
             const { Engine, Render, Runner, World, Bodies, Body, Composite, Events, Mouse, MouseConstraint, Vector } = Matter;
 
@@ -881,7 +887,11 @@
                 birdData.radius,
                 {
                     label: 'bird',
-                    render: { fillStyle: birdData.color },
+                    render: {
+                        fillStyle: birdData.color,
+                        strokeStyle: birdData.borderColor || '#000000',
+                        lineWidth: 2
+                    },
                     collisionFilter: {
                         category: CATEGORY.BIRD,
                         mask: CATEGORY.GROUND | CATEGORY.PIG | CATEGORY.BLOCK | CATEGORY.EGG | CATEGORY.DEBRIS
