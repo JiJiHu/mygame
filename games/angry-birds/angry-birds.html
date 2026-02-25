@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐦 愤怒的小鸟</title>
+    <link rel="stylesheet" href="../onepiece-theme.css">
+    <!-- Matter.js 物理引擎 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 50%, #F0E68C 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* 主菜单样式 */
+        .menu-screen {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .menu-title {
+            font-size: 48px;
+            color: #FF4500;
+            text-shadow: 3px 3px 0 #FFD700, 6px 6px 0 #8B4513;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        .menu-subtitle {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        .menu-btn {
+            display: block;
+            width: 200px;
+            padding: 15px 30px;
+            margin: 15px auto;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(145deg, #FF6347, #FF4500);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 0 #8B0000, 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 0 #8B0000, 0 15px 25px rgba(0,0,0,0.3);
+        }
+
+        .menu-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #8B0000, 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        /* 关卡选择 */
+        .level-select {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 600px;
+        }
+
+        .level-card {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 3px solid #FF6347;
+        }
+
+        .level-card:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .level-card.completed {
+            border-color: #FFD700;
+        }
+
+        .level-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #FF4500;
+        }
+
+        .level-stars {
+            font-size: 20px;
+            margin-top: 5px;
+        }
+
+        /* 游戏界面 */
+        .game-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .game-ui > * {
+            pointer-events: auto;
+        }
+
+        .score-display {
+            background: rgba(0,0,0,0.7);
+            color: #FFD700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .birds-remaining {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .bird-icon {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .restart-btn {
+            background: #FF6347;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .restart-btn:hover {
+            background: #FF4500;
+            transform: scale(1.05);
+        }
+
+        /* 游戏结束弹窗 */
+        .game-over-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-over-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            animation: popIn 0.5s ease;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 36px;
+            color: #FF4500;
+            margin-bottom: 20px;
+        }
+
+        .modal-stars {
+            font-size: 50px;
+            margin: 20px 0;
+        }
+
+        .modal-score {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn.primary {
+            background: #FFD700;
+            color: #333;
+        }
+
+        .modal-btn.primary:hover {
+            background: #FFC000;
+            transform: scale(1.05);
+        }
+
+        .modal-btn.secondary {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal-btn.secondary:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        /* 隐藏/显示控制 */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 提示文字 */
+        .hint-text {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .menu-title {
+                font-size: 32px;
+            }
+
+            .level-card {
+                width: 90px;
+                height: 90px;
+            }
+
+            .level-number {
+                font-size: 28px;
+            }
+
+            .game-ui {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .score-display, .birds-remaining {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="close-btn" onclick="goBackHome()" title="返回主页">×</button>
+
+    <!-- 主菜单 -->
+    <div id="menuScreen" class="screen active">
+        <div class="menu-screen">
+            <h1 class="menu-title">🐦 愤怒的小鸟</h1>
+            <p class="menu-subtitle">消灭所有小猪，获得三星评价！</p>
+            <button class="menu-btn" onclick="showLevelSelect()">开始游戏</button>
+            <button class="menu-btn" onclick="showHowToPlay()">游戏说明</button>
+        </div>
+    </div>
+
+    <!-- 关卡选择 -->
+    <div id="levelScreen" class="screen">
+        <h2 style="color: #333; margin-bottom: 30px; font-size: 28px;">选择关卡</h2>
+        <div class="level-select" id="levelGrid"></div>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div id="gameScreen" class="screen">
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-ui">
+            <div class="score-display">得分: <span id="scoreValue">0</span></div>
+            <div class="birds-remaining" id="birdsDisplay"></div>
+            <button class="restart-btn" onclick="restartLevel()">🔄 重新开始</button>
+        </div>
+        <div class="hint-text" id="hintText">拖拽小鸟发射，消灭所有小猪！</div>
+    </div>
+
+    <!-- 游戏结束弹窗 -->
+    <div class="game-over-modal" id="gameOverModal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modalTitle">🎉 过关啦！</h2>
+            <div class="modal-stars" id="modalStars">⭐⭐⭐</div>
+            <p class="modal-score">得分: <span id="finalScore">0</span></p>
+            <p style="color: #666; margin-bottom: 20px;" id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="backToLevelSelect()">返回关卡</button>
+                <button class="modal-btn primary" onclick="restartLevel()">再来一局</button>
+                <button class="modal-btn primary" onclick="nextLevel()" id="nextLevelBtn">下一关</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script>
+        // ==================== 游戏配置 ====================
+        const CONFIG = {
+            // 物理引擎
+            gravity: { x: 0, y: 1 },
+            enableSleeping: true,
+
+            // 弹弓参数
+            slingshotX: 150,
+            slingshotY: 450,
+            maxPullDistance: 120,
+            launchForceMultiplier: 0.045,
+
+            // 游戏参数
+            birdRadius: 15,
+            pigRadius: 18,
+            groundY: 550,
+            canvasWidth: 900,
+            canvasHeight: 600,
+
+            // 伤害阈值
+            damageThreshold: 3,
+            damageMultiplier: 8,
+            pigDeathThreshold: 15,
+            blockDestructionThreshold: 25
+        };
+
+        // 碰撞类别
+        const CATEGORY = {
+            GROUND: 0x0001,
+            BIRD: 0x0002,
+            PIG: 0x0004,
+            BLOCK: 0x0008,
+            EGG: 0x0010,
+            DEBRIS: 0x0020
+        };
+
+        // 小鸟类型
+        const BIRD_TYPES = {
+            red: {
+                name: '红色小鸟',
+                color: '#FF0000',
+                borderColor: '#8B0000',
+                radius: 15,
+                ability: null,
+                score: 5000
+            },
+            yellow: {
+                name: '黄色小鸟',
+                color: '#FFD700',
+                borderColor: '#B8860B',
+                radius: 15,
+                ability: 'speedBoost',
+                abilityParam: 2.5,
+                score: 10000
+            },
+            blue: {
+                name: '蓝色小鸟',
+                color: '#00BFFF',
+                borderColor: '#006400',
+                radius: 12,
+                ability: 'split',
+                abilityParam: 3,
+                score: 15000
+            },
+            white: {
+                name: '白色小鸟',
+                color: '#FFFFFF',
+                borderColor: '#A9A9A9',
+                radius: 15,
+                ability: 'eggBomb',
+                score: 15000
+            },
+            black: {
+                name: '黑色小鸟',
+                color: '#333333',
+                borderColor: '#000000',
+                radius: 18,
+                ability: 'explode',
+                abilityParam: 80,
+                score: 20000
+            }
+        };
+
+        // 材料类型
+        const MATERIALS = {
+            wood: {
+                name: '木头',
+                color: '#8B4513',
+                borderColor: '#5D3A1A',
+                health: 80,
+                mass: 1.5,
+                friction: 0.5,
+                restitution: 0.3,
+                score: 100
+            },
+            glass: {
+                name: '玻璃',
+                color: '#87CEEB',
+                borderColor: '#4682B4',
+                health: 30,
+                mass: 0.5,
+                friction: 0.3,
+                restitution: 0.2,
+                score: 50
+            },
+            stone: {
+                name: '石头',
+                color: '#808080',
+                borderColor: '#404040',
+                health: 200,
+                mass: 3.0,
+                friction: 0.8,
+                restitution: 0.1,
+                score: 150
+            }
+        };
+
+        // 猪类型
+        const PIG_TYPES = {
+            small: { name: '小猪', color: '#90EE90', borderColor: '#228B22', radius: 15, health: 50, score: 500 },
+            medium: { name: '中猪', color: '#32CD32', borderColor: '#006400', radius: 20, health: 80, score: 1000 },
+            large: { name: '大猪', color: '#228B22', borderColor: '#006400', radius: 28, health: 120, score: 2000 }
+        };
+
+        // 关卡数据
+        const LEVELS = [
+            {
+                id: 1,
+                name: '第一关',
+                birds: ['red', 'red', 'yellow', 'blue'],
+                pigs: [
+                    { type: 'small', x: 600, y: 480 },
+                    { type: 'small', x: 650, y: 480 }
+                ],
+                structures: [
+                    { type: 'wood', shape: 'rect', x: 600, y: 520, w: 15, h: 60 },
+                    { type: 'wood', shape: 'rect', x: 650, y: 520, w: 15, h: 60 },
+                    { type: 'wood', shape: 'rect', x: 625, y: 555, w: 80, h: 15 },
+                    { type: 'glass', shape: 'rect', x: 625, y: 500, w: 15, h: 40 }
+                ],
+                starThresholds: { oneStar: 3000, twoStars: 8000, threeStars: 12000 }
+            },
+            {
+                id: 2,
+                name: '第二关',
+                birds: ['red', 'yellow', 'blue', 'white', 'black'],
+                pigs: [
+                    { type: 'small', x: 550, y: 480 },
+                    { type: 'medium', x: 650, y: 450 },
+                    { type: 'small', x: 700, y: 480 }
+                ],
+                structures: [
+                    // 底层
+                    { type: 'stone', shape: 'rect', x: 550, y: 520, w: 15, h: 60 },
+                    { type: 'stone', shape: 'rect', x: 700, y: 520, w: 15, h: 60 },
+                    { type: 'wood', shape: 'rect', x: 625, y: 555, w: 180, h: 15 },
+                    // 中层
+                    { type: 'glass', shape: 'rect', x: 580, y: 490, w: 12, h: 50 },
+                    { type: 'glass', shape: 'rect', x: 670, y: 490, w: 12, h: 50 },
+                    { type: 'wood', shape: 'rect', x: 625, y: 470, w: 120, h: 12 },
+                    // 顶层
+                    { type: 'wood', shape: 'rect', x: 650, y: 440, w: 15, h: 40 }
+                ],
+                starThresholds: { oneStar: 5000, twoStars: 12000, threeStars: 20000 }
+            },
+            {
+                id: 3,
+                name: '第三关',
+                birds: ['red', 'yellow', 'yellow', 'blue', 'white', 'black'],
+                pigs: [
+                    { type: 'small', x: 500, y: 480 },
+                    { type: 'medium', x: 580, y: 420 },
+                    { type: 'small', x: 650, y: 480 },
+                    { type: 'large', x: 720, y: 450 }
+                ],
+                structures: [
+                    // 左边塔
+                    { type: 'wood', shape: 'rect', x: 500, y: 520, w: 15, h: 60 },
+                    { type: 'wood', shape: 'rect', x: 540, y: 520, w: 15, h: 60 },
+                    { type: 'glass', shape: 'rect', x: 520, y: 555, w: 60, h: 15 },
+                    // 中间塔
+                    { type: 'stone', shape: 'rect', x: 580, y: 470, w: 18, h: 80 },
+                    { type: 'stone', shape: 'rect', x: 620, y: 470, w: 18, h: 80 },
+                    { type: 'wood', shape: 'rect', x: 600, y: 430, w: 80, h: 15 },
+                    // 右边塔
+                    { type: 'wood', shape: 'rect', x: 650, y: 520, w: 15, h: 60 },
+                    { type: 'wood', shape: 'rect', x: 690, y: 520, w: 15, h: 60 },
+                    { type: 'glass', shape: 'rect', x: 670, y: 555, w: 60, h: 15 },
+                    // 顶层
+                    { type: 'glass', shape: 'rect', x: 720, y: 490, w: 15, h: 60 },
+                    { type: 'glass', shape: 'rect', x: 760, y: 490, w: 15, h: 60 },
+                    { type: 'stone', shape: 'rect', x: 740, y: 455, w: 70, h: 15 }
+                ],
+                starThresholds: { oneStar: 8000, twoStars: 18000, threeStars: 30000 }
+            }
+        ];
+
+        // ==================== 游戏状态 ====================
+        let gameState = 'menu';
+        let currentLevel = 0;
+        let score = 0;
+        let usedBirds = 0;
+        let pigsRemaining = 0;
+        let birdsQueue = [];
+        let currentBird = null;
+        let pigs = [];
+        let blocks = [];
+        let debris = [];
+        let isBirdFlying = false;
+        let canActivateAbility = false;
+        let levelStars = [0, 0, 0];
+        let mousePos = { x: 0, y: 0 };
+
+        // Matter.js 变量
+        let engine, render, runner, world;
+        let slingshot, slingConstraint;
+        let ground;
+        let mouseConstraint;
+
+        // ==================== 初始化 ====================
+        function init() {
+            // 初始化 Matter.js
+            const { Engine, Render, Runner, World, Bodies, Body, Composite, Events, Mouse, MouseConstraint, Vector } = Matter;
+
+            engine = Engine.create({
+                enableSleeping: CONFIG.enableSleeping,
+                gravity: CONFIG.gravity
+            });
+            world = engine.world;
+
+            // 创建渲染器
+            const canvas = document.getElementById('gameCanvas');
+            render = Render.create({
+                canvas: canvas,
+                engine: engine,
+                options: {
+                    width: CONFIG.canvasWidth,
+                    height: CONFIG.canvasHeight,
+                    wireframes: false,
+                    background: 'transparent'
+                }
+            });
+
+            // 创建鼠标控制
+            const mouse = Mouse.create(canvas);
+            mouseConstraint = MouseConstraint.create(engine, {
+                mouse: mouse,
+                constraint: {
+                    stiffness: 0.2,
+                    render: { visible: false }
+                }
+            });
+
+            // 鼠标移动事件
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = CONFIG.canvasWidth / rect.width;
+                const scaleY = CONFIG.canvasHeight / rect.height;
+                mousePos.x = (e.clientX - rect.left) * scaleX;
+                mousePos.y = (e.clientY - rect.top) * scaleY;
+            });
+
+            // 鼠标释放事件（发射小鸟）
+            canvas.addEventListener('mouseup', handleMouseUp);
+
+            // 点击事件（激活能力）
+            canvas.addEventListener('mousedown', handleMouseDown);
+
+            // 碰撞事件
+            Events.on(engine, 'collisionStart', handleCollision);
+
+            // 渲染前事件（自定义绘制）
+            Events.on(render, 'beforeRender', beforeRender);
+            Events.on(render, 'afterRender', afterRender);
+
+            // 启动引擎和渲染器
+            runner = Runner.create();
+            Runner.run(runner, engine);
+            Render.run(render);
+
+            // 加载存档
+            loadProgress();
+
+            // 显示主菜单
+            showMenu();
+        }
+
+        // ==================== 场景管理 ====================
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showMenu() {
+            gameState = 'menu';
+            showScreen('menuScreen');
+        }
+
+        function showLevelSelect() {
+            gameState = 'levelSelect';
+            renderLevelGrid();
+            showScreen('levelScreen');
+        }
+
+        function showGame() {
+            gameState = 'playing';
+            showScreen('gameScreen');
+            document.getElementById('hintText').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('hintText').style.display = 'none';
+            }, 3000);
+        }
+
+        function showHowToPlay() {
+            alert('🎮 游戏说明：\n\n1. 拖拽小鸟向后拉动弹弓\n2. 松开发射小鸟\n3. 消灭所有小猪过关\n4. 使用越少小鸟，得分越高\n5. 点击飞行中的小鸟可激活特殊能力\n\n🐦 小鸟能力：\n• 红色：普通小鸟\n• 黄色：点击加速冲刺\n• 蓝色：点击分裂成三只\n• 白色：点击下蛋炸弹\n• 黑色：点击爆炸');
+        }
+
+        // ==================== 关卡系统 ====================
+        function renderLevelGrid() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+
+            LEVELS.forEach((level, index) => {
+                const card = document.createElement('div');
+                card.className = 'level-card' + (levelStars[index] > 0 ? ' completed' : '');
+                card.onclick = () => startLevel(index);
+
+                const stars = '⭐'.repeat(levelStars[index]);
+
+                card.innerHTML = `
+                    <div class="level-number">${level.id}</div>
+                    <div class="level-stars">${stars}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function startLevel(levelIndex) {
+            currentLevel = levelIndex;
+            initLevel(LEVELS[levelIndex]);
+            showGame();
+        }
+
+        function initLevel(levelData) {
+            const { Engine, World, Bodies, Composite, Constraint, Body } = Matter;
+
+            // 清除世界
+            Composite.clear(world, false);
+
+            // 重置游戏状态
+            score = 0;
+            usedBirds = 0;
+            isBirdFlying = false;
+            canActivateAbility = false;
+            pigs = [];
+            blocks = [];
+            debris = [];
+            birdsQueue = [...levelData.birds];
+
+            // 创建地面
+            ground = Bodies.rectangle(
+                CONFIG.canvasWidth / 2,
+                CONFIG.groundY + 25,
+                CONFIG.canvasWidth,
+                50,
+                {
+                    isStatic: true,
+                    label: 'ground',
+                    render: { fillStyle: '#228B22' },
+                    collisionFilter: { category: CATEGORY.GROUND }
+                }
+            );
+            Composite.add(world, ground);
+
+            // 创建小猪
+            levelData.pigs.forEach(pigData => {
+                const pigType = PIG_TYPES[pigData.type];
+                const pig = Bodies.circle(pigData.x, pigData.y, pigType.radius, {
+                    label: 'pig',
+                    render: { fillStyle: pigType.color },
+                    collisionFilter: {
+                        category: CATEGORY.PIG,
+                        mask: CATEGORY.GROUND | CATEGORY.BIRD | CATEGORY.BLOCK | CATEGORY.EGG | CATEGORY.DEBRIS
+                    },
+                    restitution: 0.3,
+                    friction: 0.5
+                });
+                pig.health = pigType.health;
+                pig.pigType = pigType;
+                pig.maxHealth = pigType.health;
+                pigs.push(pig);
+                Composite.add(world, pig);
+            });
+            pigsRemaining = pigs.length;
+
+            // 创建建筑物
+            levelData.structures.forEach(blockData => {
+                const material = MATERIALS[blockData.type];
+                let block;
+
+                if (blockData.shape === 'rect') {
+                    block = Bodies.rectangle(
+                        blockData.x,
+                        blockData.y,
+                        blockData.w,
+                        blockData.h,
+                        {
+                            label: 'block',
+                            render: { fillStyle: material.color },
+                            collisionFilter: {
+                                category: CATEGORY.BLOCK,
+                                mask: CATEGORY.GROUND | CATEGORY.BIRD | CATEGORY.BLOCK | CATEGORY.PIG | CATEGORY.EGG | CATEGORY.DEBRIS
+                            },
+                            mass: material.mass,
+                            friction: material.friction,
+                            restitution: material.restitution
+                        }
+                    );
+                } else {
+                    block = Bodies.circle(blockData.x, blockData.y, blockData.w / 2, {
+                        label: 'block',
+                        render: { fillStyle: material.color },
+                        collisionFilter: {
+                            category: CATEGORY.BLOCK,
+                            mask: CATEGORY.GROUND | CATEGORY.BIRD | CATEGORY.BLOCK | CATEGORY.PIG | CATEGORY.EGG | CATEGORY.DEBRIS
+                        },
+                        mass: material.mass,
+                        friction: material.friction,
+                        restitution: material.restitution
+                    });
+                }
+
+                block.health = material.health;
+                block.maxHealth = material.health;
+                block.material = material;
+                blocks.push(block);
+                Composite.add(world, block);
+            });
+
+
+            // 加载第一只小鸟
+            loadNextBird();
+
+            // 更新UI
+            updateUI();
+        }
+
+        function loadNextBird() {
+            const { World, Bodies, Constraint, Body, Composite } = Matter;
+
+            if (birdsQueue.length === 0) {
+                // 检查游戏是否结束
+                setTimeout(checkGameEnd, 2000);
+                return;
+            }
+
+            const birdType = birdsQueue.shift();
+            const birdData = BIRD_TYPES[birdType];
+
+            // 创建小鸟
+            currentBird = Bodies.circle(
+                CONFIG.slingshotX,
+                CONFIG.slingshotY,
+                birdData.radius,
+                {
+                    label: 'bird',
+                    render: { fillStyle: birdData.color },
+                    collisionFilter: {
+                        category: CATEGORY.BIRD,
+                        mask: CATEGORY.GROUND | CATEGORY.PIG | CATEGORY.BLOCK | CATEGORY.EGG | CATEGORY.DEBRIS
+                    },
+                    restitution: 0.5,
+                    friction: 0.5,
+                    density: 0.004,
+                    frictionAir: 0.001
+                }
+            );
+
+            currentBird.birdType = birdType;
+            currentBird.birdData = birdData;
+            currentBird.originalRadius = birdData.radius;
+            currentBird.canActivate = true;
+
+            Composite.add(world, currentBird);
+
+            // 创建弹弓约束
+            slingConstraint = Constraint.create({
+                pointA: { x: CONFIG.slingshotX, y: CONFIG.slingshotY },
+                bodyB: currentBird,
+                stiffness: 0.05,
+                damping: 0.01,
+                length: 10,
+                render: { visible: false }
+            });
+
+            Composite.add(world, slingConstraint);
+
+            isBirdFlying = false;
+            canActivateAbility = false;
+        }
+
+        // ==================== 弹弓控制 ====================
+        function handleMouseUp(e) {
+            if (!currentBird || isBirdFlying || !slingConstraint) return;
+
+            const { World, Composite, Vector } = Matter;
+
+            // 检查是否在弹弓区域
+            const dist = Vector.magnitude(Vector.sub(mousePos, { x: CONFIG.slingshotX, y: CONFIG.slingshotY }));
+            if (dist > CONFIG.maxPullDistance * 1.5) return;
+
+            // 检查小鸟是否被拖动
+            if (!mouseConstraint.body || mouseConstraint.body !== currentBird) return;
+
+            // 发射小鸟
+            const pullVector = Vector.sub({ x: CONFIG.slingshotX, y: CONFIG.slingshotY }, currentBird.position);
+            const pullDistance = Math.min(Vector.magnitude(pullVector), CONFIG.maxPullDistance);
+
+            if (pullDistance < 20) {
+                // 拉距不够，重置小鸟位置
+                Body.setPosition(currentBird, { x: CONFIG.slingshotX, y: CONFIG.slingshotY });
+                return;
+            }
+
+            // 移除弹弓约束
+            Composite.remove(world, slingConstraint);
+            slingConstraint = null;
+
+            // 应用发射力
+            const force = Vector.mult(Vector.normalise(pullVector), pullDistance * CONFIG.launchForceMultiplier);
+            Body.applyForce(currentBird, currentBird.position, force);
+
+            isBirdFlying = true;
+            canActivateAbility = true;
+            usedBirds++;
+
+            // 延迟检查小鸟状态
+            setTimeout(checkBirdStatus, 500);
+        }
+
+        function handleMouseDown(e) {
+            if (!currentBird || !isBirdFlying || !canActivateAbility) return;
+            if (!currentBird.canActivate) return;
+
+            const { World, Bodies, Composite, Body, Vector } = Matter;
+            const birdType = currentBird.birdType;
+
+            currentBird.canActivate = false;
+            canActivateAbility = false;
+
+            switch (birdType) {
+                case 'yellow':
+                    // 加速冲刺
+                    const velocity = currentBird.velocity;
+                    Body.setVelocity(currentBird, {
+                        x: velocity.x * currentBird.birdData.abilityParam,
+                        y: velocity.y * currentBird.birdData.abilityParam
+                    });
+                    break;
+
+                case 'blue':
+                    // 分裂成三只
+                    const baseVel = currentBird.velocity;
+                    const angle = Math.atan2(baseVel.y, baseVel.x);
+                    const speed = Vector.magnitude(baseVel);
+
+                    for (let i = -1; i <= 1; i++) {
+                        if (i === 0) continue;
+                        const newAngle = angle + (i * 0.5);
+                        const miniBird = Bodies.circle(
+                            currentBird.position.x,
+                            currentBird.position.y,
+                            8,
+                            {
+                                label: 'bird',
+                                render: { fillStyle: currentBird.birdData.color },
+                                collisionFilter: {
+                                    category: CATEGORY.BIRD,
+                                    mask: CATEGORY.GROUND | CATEGORY.PIG | CATEGORY.BLOCK | CATEGORY.EGG | CATEGORY.DEBRIS
+                                },
+                                density: 0.002
+                            }
+                        );
+                        Body.setVelocity(miniBird, {
+                            x: Math.cos(newAngle) * speed,
+                            y: Math.sin(newAngle) * speed
+                        });
+                        Composite.add(world, miniBird);
+                    }
+                    // 移除原小鸟
+                    Composite.remove(world, currentBird);
+                    currentBird = null;
+                    break;
+
+                case 'white':
+                    // 下蛋炸弹
+                    const egg = Bodies.circle(
+                        currentBird.position.x,
+                        currentBird.position.y + 20,
+                        10,
+                        {
+                            label: 'egg',
+                            render: { fillStyle: '#FFD700' },
+                            collisionFilter: {
+                                category: CATEGORY.EGG,
+                                mask: CATEGORY.GROUND | CATEGORY.BLOCK | CATEGORY.PIG
+                            },
+                            density: 0.008
+                        }
+                    );
+                    Body.setVelocity(egg, {
+                        x: currentBird.velocity.x,
+                        y: 5
+                    });
+                    Composite.add(world, egg);
+                    break;
+
+                case 'black':
+                    // 爆炸
+                    const explosionPos = currentBird.position;
+                    const explosionRadius = currentBird.birdData.abilityParam;
+
+                    // 应用爆炸力
+                    const allBodies = Composite.allBodies(world);
+                    allBodies.forEach(body => {
+                        if (body.isStatic) return;
+                        const dist = Vector.magnitude(Vector.sub(body.position, explosionPos));
+                        if (dist < explosionRadius) {
+                            const forceMag = (explosionRadius - dist) * 0.5;
+                            const dir = Vector.normalise(Vector.sub(body.position, explosionPos));
+                            Body.applyForce(body, body.position, Vector.mult(dir, forceMag));
+
+                            // 造成额外伤害
+                            if (body.label === 'pig') {
+                                body.health -= 50;
+                            }
+                        }
+                    });
+
+                    // 创建爆炸视觉效果
+                    createExplosionEffect(explosionPos);
+
+                    // 移除原小鸟
+                    Composite.remove(world, currentBird);
+                    currentBird = null;
+                    break;
+            }
+
+            // 延迟加载下一只小鸟
+            setTimeout(() => {
+                if (gameState === 'playing') {
+                    loadNextBird();
+                }
+            }, 1500);
+        }
+
+        function createExplosionEffect(pos) {
+            // 简化的爆炸效果 - 创建一些碎片
+            for (let i = 0; i < 8; i++) {
+                const { Bodies, Composite, Body } = Matter;
+                const debris = Bodies.circle(
+                    pos.x + (Math.random() - 0.5) * 30,
+                    pos.y + (Math.random() - 0.5) * 30,
+                    3 + Math.random() * 5,
+                    {
+                        label: 'debris',
+                        render: { fillStyle: '#FF4500' },
+                        collisionFilter: { category: CATEGORY.DEBRIS }
+                    }
+                );
+                Body.setVelocity(debris, {
+                    x: (Math.random() - 0.5) * 15,
+                    y: (Math.random() - 0.5) * 15
+                });
+                Composite.add(world, debris);
+            }
+        }
+
+        function checkBirdStatus() {
+            if (!currentBird) return;
+
+            const { Body } = Matter;
+            const speed = Math.sqrt(currentBird.velocity.x ** 2 + currentBird.velocity.y ** 2);
+
+            if (speed < 0.5) {
+                // 小鸟停止，移除并加载下一只
+                Composite.remove(world, currentBird);
+                currentBird = null;
+                setTimeout(() => {
+                    if (gameState === 'playing') {
+                        loadNextBird();
+                    }
+                }, 500);
+            } else {
+                // 继续检查
+                setTimeout(checkBirdStatus, 500);
+            }
+        }
+
+        function checkGameEnd() {
+            if (pigsRemaining === 0) {
+                // 胜利
+                showGameOver(true);
+            } else if (birdsQueue.length === 0 && !currentBird) {
+                // 失败
+                showGameOver(false);
+            }
+        }
+
+        // ==================== 碰撞处理 ====================
+        function handleCollision(event) {
+            const { Vector, Composite, Body } = Matter;
+
+            event.pairs.forEach(pair => {
+                const bodyA = pair.bodyA;
+                const bodyB = pair.bodyB;
+
+                // 计算碰撞力度
+                const relVel = Vector.sub(bodyA.velocity, bodyB.velocity);
+                const impactSpeed = Vector.magnitude(relVel);
+
+                if (impactSpeed < CONFIG.damageThreshold) return;
+
+                // 处理小猪受伤
+                [bodyA, bodyB].forEach(body => {
+                    if (body.label === 'pig' && body.health !== undefined) {
+                        const damage = (impactSpeed - CONFIG.damageThreshold) * CONFIG.damageMultiplier;
+                        body.health -= damage;
+
+                        if (body.health <= 0) {
+                            // 小猪死亡
+                            removePig(body);
+                        }
+                    }
+
+                    // 处理建筑物受伤
+                    if (body.label === 'block' && body.health !== undefined) {
+                        const damage = (impactSpeed - CONFIG.damageThreshold) * CONFIG.damageMultiplier;
+                        body.health -= damage;
+
+                        if (body.health <= 0) {
+                            // 方块销毁
+                            removeBlock(body);
+                        }
+                    }
+                });
+            });
+        }
+
+        function removePig(pig) {
+            const { Composite, Bodies, Body, Vector } = Matter;
+
+            // 从数组中移除
+            const index = pigs.indexOf(pig);
+            if (index > -1) {
+                pigs.splice(index, 1);
+                pigsRemaining--;
+                score += pig.pigType.score;
+            }
+
+            // 创建碎片效果
+            for (let i = 0; i < 5; i++) {
+                const piece = Bodies.circle(
+                    pig.position.x + (Math.random() - 0.5) * 20,
+                    pig.position.y + (Math.random() - 0.5) * 20,
+                    4,
+                    {
+                        render: { fillStyle: pig.pigType.color },
+                        collisionFilter: { category: CATEGORY.DEBRIS }
+                    }
+                );
+                Body.setVelocity(piece, {
+                    x: (Math.random() - 0.5) * 8,
+                    y: (Math.random() - 0.5) * 8 - 3
+                });
+                Composite.add(world, piece);
+            }
+
+            // 移除小猪
+            Composite.remove(world, pig);
+
+            updateUI();
+
+            // 检查是否全部消灭
+            if (pigsRemaining === 0) {
+                setTimeout(() => showGameOver(true), 1000);
+            }
+        }
+
+        function removeBlock(block) {
+            const { Composite, Bodies, Body } = Matter;
+
+            // 从数组中移除
+            const index = blocks.indexOf(block);
+            if (index > -1) {
+                blocks.splice(index, 1);
+                score += block.material.score;
+            }
+
+            // 创建碎片
+            for (let i = 0; i < 3; i++) {
+                const piece = Bodies.rectangle(
+                    block.position.x + (Math.random() - 0.5) * 20,
+                    block.position.y + (Math.random() - 0.5) * 20,
+                    8,
+                    8,
+                    {
+                        render: { fillStyle: block.material.color },
+                        collisionFilter: { category: CATEGORY.DEBRIS }
+                    }
+                );
+                Body.setVelocity(piece, {
+                    x: (Math.random() - 0.5) * 6,
+                    y: (Math.random() - 0.5) * 6 - 2
+                });
+                Composite.add(world, piece);
+            }
+
+            // 移除方块
+            Composite.remove(world, block);
+
+            updateUI();
+        }
+
+        // ==================== 渲染 ====================
+        function beforeRender() {
+            const ctx = render.context;
+            const { Vector } = Matter;
+
+            // 绘制背景
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, CONFIG.canvasWidth, 200);
+
+            // 绘制草地
+            ctx.fillStyle = '#90EE90';
+            ctx.fillRect(0, CONFIG.groundY, CONFIG.canvasWidth, CONFIG.canvasHeight - CONFIG.groundY);
+        }
+
+        function afterRender() {
+            const ctx = render.context;
+            const { Vector } = Matter;
+
+            // 绘制弹弓
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(CONFIG.slingshotX - 8, CONFIG.slingshotY - 60, 16, 80);
+
+            // 绘制弹弓皮筋
+            if (currentBird && slingConstraint) {
+                ctx.beginPath();
+                ctx.moveTo(CONFIG.slingshotX - 8, CONFIG.slingshotY - 40);
+                ctx.lineTo(currentBird.position.x, currentBird.position.y);
+                ctx.lineTo(CONFIG.slingshotX + 8, CONFIG.slingshotY - 40);
+                ctx.strokeStyle = '#8B0000';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+
+            // 绘制轨迹预览
+            if (currentBird && slingConstraint && !isBirdFlying) {
+                drawTrajectory(ctx);
+            }
+
+            // 绘制小鸟
+            if (currentBird) {
+                drawBird(ctx, currentBird);
+            }
+
+            // 绘制小猪
+            pigs.forEach(pig => {
+                drawPig(ctx, pig);
+            });
+
+            // 绘制方块
+            blocks.forEach(block => {
+                drawBlock(ctx, block);
+            });
+        }
+
+        function drawBird(ctx, bird) {
+            const { birdType, birdData } = bird;
+
+            ctx.beginPath();
+            ctx.arc(bird.position.x, bird.position.y, birdData.radius, 0, Math.PI * 2);
+            ctx.fillStyle = birdData.color;
+            ctx.fill();
+            ctx.strokeStyle = birdData.borderColor;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 绘制眼睛
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(bird.position.x + 5, bird.position.y - 3, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(bird.position.x + 7, bird.position.y - 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制眉毛（愤怒表情）
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(bird.position.x - 2, bird.position.y - 10);
+            ctx.lineTo(bird.position.x + 5, bird.position.y - 8);
+            ctx.stroke();
+
+            // 绘制喙
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.moveTo(bird.position.x + 10, bird.position.y + 2);
+            ctx.lineTo(bird.position.x + 18, bird.position.y + 5);
+            ctx.lineTo(bird.position.x + 10, bird.position.y + 8);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawPig(ctx, pig) {
+            const { pigType, health, maxHealth } = pig;
+
+            ctx.beginPath();
+            ctx.arc(pig.position.x, pig.position.y, pigType.radius, 0, Math.PI * 2);
+            ctx.fillStyle = pigType.color;
+            ctx.fill();
+            ctx.strokeStyle = pigType.borderColor;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 绘制眼睛
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(pig.position.x - 6, pig.position.y - 4, 5, 0, Math.PI * 2);
+            ctx.arc(pig.position.x + 6, pig.position.y - 4, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(pig.position.x - 5, pig.position.y - 3, 2, 0, Math.PI * 2);
+            ctx.arc(pig.position.x + 7, pig.position.y - 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制鼻子
+            ctx.fillStyle = '#90EE90';
+            ctx.beginPath();
+            ctx.ellipse(pig.position.x, pig.position.y + 4, 6, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制耳朵
+            ctx.fillStyle = pigType.color;
+            ctx.beginPath();
+            ctx.ellipse(pig.position.x - 10, pig.position.y - 12, 4, 6, -0.3, 0, Math.PI * 2);
+            ctx.ellipse(pig.position.x + 10, pig.position.y - 12, 4, 6, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 血量指示
+            if (health < maxHealth) {
+                const healthPercent = health / maxHealth;
+                ctx.fillStyle = 'red';
+                ctx.fillRect(pig.position.x - 15, pig.position.y - pigType.radius - 10, 30, 4);
+                ctx.fillStyle = '#00FF00';
+                ctx.fillRect(pig.position.x - 15, pig.position.y - pigType.radius - 10, 30 * healthPercent, 4);
+            }
+        }
+
+        function drawBlock(ctx, block) {
+            const { material, health, maxHealth, vertices } = block;
+
+            ctx.beginPath();
+            ctx.moveTo(vertices[0].x, vertices[0].y);
+            for (let i = 1; i < vertices.length; i++) {
+                ctx.lineTo(vertices[i].x, vertices[i].y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = material.color;
+            ctx.fill();
+            ctx.strokeStyle = material.borderColor;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 损坏效果
+            if (health < maxHealth * 0.7) {
+                ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    const x = block.position.x + (Math.random() - 0.5) * 30;
+                    const y = block.position.y + (Math.random() - 0.5) * 30;
+                    ctx.beginPath();
+                    ctx.moveTo(x - 5, y - 5);
+                    ctx.lineTo(x + 5, y + 5);
+                    ctx.moveTo(x + 5, y - 5);
+                    ctx.lineTo(x - 5, y + 5);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function drawTrajectory(ctx) {
+            const { Vector, Body } = Matter;
+
+            const anchor = { x: CONFIG.slingshotX, y: CONFIG.slingshotY };
+            const pullVector = Vector.sub(anchor, currentBird.position);
+            const pullDistance = Math.min(Vector.magnitude(pullVector), CONFIG.maxPullDistance);
+
+            if (pullDistance < 20) return;
+
+            const direction = Vector.normalise(pullVector);
+            const force = pullDistance * CONFIG.launchForceMultiplier;
+            const velocity = Vector.mult(direction, force * 1000);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+
+            for (let t = 0; t < 30; t++) {
+                const x = currentBird.position.x + velocity.x * t * 0.05;
+                const y = currentBird.position.y + velocity.y * t * 0.05 + 0.5 * CONFIG.gravity.y * 500 * (t * 0.05) * (t * 0.05);
+
+                if (y > CONFIG.groundY || x > CONFIG.canvasWidth || x < 0) break;
+
+                const alpha = 1 - t / 30;
+                ctx.fillStyle = `rgba(255,255,255,${alpha * 0.6})`;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // ==================== UI 更新 ====================
+        function updateUI() {
+            document.getElementById('scoreValue').textContent = score;
+
+            // 显示剩余小鸟
+            const birdsDisplay = document.getElementById('birdsDisplay');
+            let birdIcons = '';
+
+            // 已使用的
+            for (let i = 0; i < usedBirds; i++) {
+                birdIcons += '<div class="bird-icon" style="background: #888;"></div>';
+            }
+
+            // 当前小鸟
+            if (currentBird) {
+                birdIcons += `<div class="bird-icon" style="background: ${currentBird.birdData.color}; border-color: ${currentBird.birdData.borderColor};"></div>`;
+            }
+
+            // 待使用
+            birdsQueue.forEach(type => {
+                birdIcons += `<div class="bird-icon" style="background: ${BIRD_TYPES[type].color}; border-color: ${BIRD_TYPES[type].borderColor};"></div>`;
+            });
+
+            birdsDisplay.innerHTML = birdIcons;
+        }
+
+        // ==================== 游戏结束 ====================
+        function showGameOver(won) {
+            const level = LEVELS[currentLevel];
+            const thresholds = level.starThresholds;
+
+            let stars = 0;
+            if (won) {
+                // 计算星级
+                if (score >= thresholds.threeStars) stars = 3;
+                else if (score >= thresholds.twoStars) stars = 2;
+                else if (score >= thresholds.oneStar) stars = 1;
+
+                // 保存进度
+                if (stars > levelStars[currentLevel]) {
+                    levelStars[currentLevel] = stars;
+                    saveProgress();
+                }
+            }
+
+            // 显示弹窗
+            const modal = document.getElementById('gameOverModal');
+            document.getElementById('modalTitle').textContent = won ? '🎉 过关啦！' : '💔 游戏结束';
+            document.getElementById('modalStars').textContent = won ? '⭐'.repeat(stars) : '💔';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('modalMessage').textContent = won
+                ? `使用 ${usedBirds} 只小鸟，获得 ${stars} 星评价！`
+                : '小猪还没有全部消灭，再试一次吧！';
+
+            // 下一关按钮
+            const nextBtn = document.getElementById('nextLevelBtn');
+            nextBtn.style.display = (won && currentLevel < LEVELS.length - 1) ? 'block' : 'none';
+
+            modal.classList.add('active');
+        }
+
+        function hideGameOver() {
+            document.getElementById('gameOverModal').classList.remove('active');
+        }
+
+        function restartLevel() {
+            hideGameOver();
+            startLevel(currentLevel);
+        }
+
+        function backToLevelSelect() {
+            hideGameOver();
+            showLevelSelect();
+        }
+
+        function nextLevel() {
+            hideGameOver();
+            if (currentLevel < LEVELS.length - 1) {
+                startLevel(currentLevel + 1);
+            }
+        }
+
+        // ==================== 数据持久化 ====================
+        function saveProgress() {
+            localStorage.setItem('angryBirdsStars', JSON.stringify(levelStars));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('angryBirdsStars');
+            if (saved) {
+                levelStars = JSON.parse(saved);
+            }
+        }
+
+        // ==================== 工具函数 ====================
+        function goBackHome() {
+            hideGameOver();
+            gameState = 'menu';
+            showMenu();
+        }
+
+        // ==================== 启动游戏 ====================
+        window.onload = init;
+    </script>
+</body>
+</html>

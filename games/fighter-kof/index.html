@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🥊 拳皇格斗</title>
+    <link rel="stylesheet" href="../onepiece-theme.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #e94560;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e94560;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #e94560;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 主菜单 */
+        .menu-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .menu-title {
+            font-size: 72px;
+            font-weight: bold;
+            color: #ff6b35;
+            text-shadow: 0 0 20px rgba(255, 107, 53, 0.8),
+                         0 0 40px rgba(255, 107, 53, 0.6),
+                         4px 4px 0 #1a1a2e,
+                         8px 8px 0 #16213e;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .menu-subtitle {
+            font-size: 28px;
+            color: #ffffff;
+            margin-bottom: 60px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .menu-btn {
+            display: block;
+            width: 280px;
+            padding: 20px 40px;
+            margin: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(145deg, #e94560, #d63447);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 0 #a02030,
+                        0 10px 30px rgba(233, 69, 96, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 0 #a02030,
+                        0 15px 40px rgba(233, 69, 96, 0.5);
+        }
+
+        .menu-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 0 #a02030,
+                        0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(145deg, #0f3460, #16213e);
+            box-shadow: 0 6px 0 #0a213a,
+                        0 10px 30px rgba(15, 52, 96, 0.4);
+        }
+
+        .menu-btn.secondary:hover {
+            box-shadow: 0 9px 0 #0a213a,
+                        0 15px 40px rgba(15, 52, 96, 0.5);
+        }
+
+        /* 游戏界面 */
+        .game-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hud {
+            width: 90%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 20px;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .player-info {
+            width: 45%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .player-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .health-bar-container {
+            width: 100%;
+            height: 30px;
+            background: #2d2d44;
+            border: 3px solid #444;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .health-bar {
+            height: 100%;
+            transition: width 0.3s;
+            border-radius: 3px;
+        }
+
+        .health-bar.p1 {
+            background: linear-gradient(90deg, #ff4444, #ff6b6b);
+            margin-left: auto;
+        }
+
+        .health-bar.p2 {
+            background: linear-gradient(90deg, #4444ff, #6b6bff);
+        }
+
+        .energy-container {
+            width: 100%;
+            height: 15px;
+            background: #2d2d44;
+            border: 2px solid #444;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .energy-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffed4a);
+            transition: width 0.2s;
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8),
+                         2px 2px 4px rgba(0, 0, 0, 0.8);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+
+        #gameCanvas {
+            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 70%, #8B4513 100%);
+            border: 4px solid #2d2d44;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .combo-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 72px;
+            font-weight: bold;
+            color: #ff6b35;
+            text-shadow: 3px 3px 0 #1a1a2e,
+                         6px 6px 0 #16213e;
+            animation: comboPopup 0.5s;
+            pointer-events: none;
+        }
+
+        @keyframes comboPopup {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .game-over h1 {
+            font-size: 64px;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
+        .game-over p {
+            font-size: 28px;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        /* 帮助面板 */
+        .controls-help {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .help-row {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            gap: 20px;
+        }
+
+        .help-player {
+            font-weight: bold;
+            min-width: 60px;
+        }
+
+        .help-player.p1 { color: #ff6b6b; }
+        .help-player.p2 { color: #6b6bff; }
+
+        .help-keys {
+            display: flex;
+            gap: 5px;
+        }
+
+        .key {
+            background: #444;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            border: 1px solid #666;
+        }
+
+        /* 隐藏/显示控制 */
+        .hidden { display: none !important; }
+        .visible { display: flex !important; }
+    </style>
+</head>
+<body>
+    <button class="close-btn" onclick="goToMenu()" title="返回菜单">×</button>
+
+    <!-- 主菜单 -->
+    <div id="menuScreen" class="menu-screen">
+        <h1 class="menu-title">🥊 拳皇格斗</h1>
+        <p class="menu-subtitle">经典格斗，热血对决</p>
+        <button class="menu-btn" onclick="startGame()">开始游戏</button>
+        <button class="menu-btn secondary" onclick="showControls()">操作说明</button>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div id="gameScreen" class="game-screen hidden">
+        <div class="hud">
+            <div class="player-info">
+                <div class="player-name">PLAYER 1</div>
+                <div class="health-bar-container">
+                    <div id="healthP1" class="health-bar p1" style="width: 100%"></div>
+                </div>
+                <div class="energy-container">
+                    <div id="energyP1" class="energy-bar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="timer" id="timer">99</div>
+            <div class="player-info">
+                <div class="player-name">PLAYER 2</div>
+                <div class="health-bar-container">
+                    <div id="healthP2" class="health-bar p2" style="width: 100%"></div>
+                </div>
+                <div class="energy-container">
+                    <div id="energyP2" class="energy-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <div class="controls-help">
+            <div class="help-row">
+                <span class="help-player p1">P1:</span>
+                <div class="help-keys">
+                    <span class="key">WASD</span> 移动
+                    <span class="key">J</span> 拳
+                    <span class="key">K</span> 脚
+                    <span class="key">L</span> 必杀
+                </div>
+            </div>
+            <div class="help-row">
+                <span class="help-player p2">P2:</span>
+                <div class="help-keys">
+                    <span class="key">↑↓←→</span> 移动
+                    <span class="key">1</span> 拳
+                    <span class="key">2</span> 脚
+                    <span class="key">3</span> 必杀
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏结束 -->
+    <div id="gameOver" class="game-over">
+        <h1 id="winnerText">PLAYE R1 获胜!</h1>
+        <p id="scoreText">比分 2 - 1</p>
+        <button class="menu-btn" onclick="restartGame()">再来一局</button>
+        <button class="menu-btn secondary" onclick="goToMenu()">返回菜单</button>
+    </div>
+
+    <script>
+        // ==================== 游戏配置 ====================
+        const CONFIG = {
+            canvasWidth: 1000,
+            canvasHeight: 600,
+            gravity: 0.8,
+            groundY: 500,
+            roundTime: 99,
+            maxEnergy: 100,
+            energyPerHit: 10,
+            specialCost: 50
+        };
+
+        // ==================== 角色配置 ====================
+        const FIGHTERS = {
+            p1: {
+                color: '#ff4444',
+                borderColor: '#cc0000',
+                width: 60,
+                height: 120,
+                speed: 5,
+                jumpForce: 15,
+                damage: 15,
+                specialDamage: 40
+            },
+            p2: {
+                color: '#4444ff',
+                borderColor: '#0000cc',
+                width: 60,
+                height: 120,
+                speed: 5,
+                jumpForce: 15,
+                damage: 15,
+                specialDamage: 40
+            }
+        };
+
+        // ==================== 游戏状态 ====================
+        let gameState = 'menu'; // menu, playing, paused, gameover
+        let canvas, ctx;
+        let player1, player2;
+        let keys = {};
+        let timer = CONFIG.roundTime;
+        let timerInterval;
+        let roundWins = { p1: 0, p2: 0 };
+        let animationFrame;
+
+        // ==================== Fighter 类 ====================
+        class Fighter {
+            constructor(config, x, facing) {
+                this.x = x;
+                this.y = CONFIG.groundY - config.height;
+                this.vx = 0;
+                this.vy = 0;
+                this.width = config.width;
+                this.height = config.height;
+                this.color = config.color;
+                this.borderColor = config.borderColor;
+                this.speed = config.speed;
+                this.jumpForce = config.jumpForce;
+                this.damage = config.damage;
+                this.specialDamage = config.specialDamage;
+                this.facing = facing; // 1 = right, -1 = left
+                this.health = 100;
+                this.energy = 0;
+                this.isAttacking = false;
+                this.isSpecial = false;
+                this.attackCooldown = 0;
+                this.isGrounded = true;
+                this.combo = 0;
+                this.comboTimer = 0;
+                this.hitStun = 0;
+                this.isBlocking = false;
+            }
+
+            update(keys, opponent) {
+                // 冷却递减
+                if (this.attackCooldown > 0) this.attackCooldown--;
+                if (this.comboTimer > 0) {
+                    this.comboTimer--;
+                    if (this.comboTimer === 0) this.combo = 0;
+                }
+                if (this.hitStun > 0) this.hitStun--;
+
+                // 移动
+                if (this.hitStun <= 0) {
+                    if (keys.left) {
+                        this.vx = -this.speed;
+                        this.facing = -1;
+                    } else if (keys.right) {
+                        this.vx = this.speed;
+                        this.facing = 1;
+                    } else {
+                        this.vx = 0;
+                    }
+
+                    // 防御
+                    this.isBlocking = (keys.left && this.facing === -1) || (keys.right && this.facing === 1);
+
+                    // 跳跃
+                    if (keys.jump && this.isGrounded) {
+                        this.vy = -this.jumpForce;
+                        this.isGrounded = false;
+                    }
+                }
+
+                // 重力
+                this.vy += CONFIG.gravity;
+
+                // 更新位置
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // 地面检测
+                if (this.y > CONFIG.groundY - this.height) {
+                    this.y = CONFIG.groundY - this.height;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                }
+
+                // 边界检测
+                if (this.x < 0) this.x = 0;
+                if (this.x > CONFIG.canvasWidth - this.width) {
+                    this.x = CONFIG.canvasWidth - this.width;
+                }
+
+                // 面向对手
+                if (opponent) {
+                    this.facing = opponent.x > this.x ? 1 : -1;
+                }
+            }
+
+            attack(opponent) {
+                if (this.attackCooldown > 0 || this.hitStun > 0) return false;
+                
+                this.isAttacking = true;
+                this.attackCooldown = 15;
+                this.hitStun = 5;
+                
+                setTimeout(() => {
+                    this.isAttacking = false;
+                }, 100);
+
+                // 检测命中
+                if (this.checkHit(opponent)) {
+                    const damage = opponent.isBlocking ? this.damage * 0.2 : this.damage;
+                    opponent.takeDamage(damage);
+                    
+                    // 获得能量
+                    this.energy = Math.min(CONFIG.maxEnergy, this.energy + CONFIG.energyPerHit);
+                    
+                    // 连击
+                    if (!opponent.isBlocking) {
+                        this.combo++;
+                        this.comboTimer = 60;
+                        if (this.combo > 2) {
+                            showCombo(this.combo);
+                        }
+                    }
+
+                    return true;
+                }
+                return false;
+            }
+
+            specialAttack(opponent) {
+                if (this.attackCooldown > 0 || this.hitStun > 0) return false;
+                if (this.energy < CONFIG.specialCost) return false;
+                
+                this.energy -= CONFIG.specialCost;
+                this.isSpecial = true;
+                this.attackCooldown = 30;
+                this.hitStun = 10;
+                
+                setTimeout(() => {
+                    this.isSpecial = false;
+                }, 300);
+
+                // 必杀技大范围命中
+                const attackRange = 150;
+                const distance = Math.abs(this.x - opponent.x);
+                
+                if (distance < attackRange) {
+                    opponent.takeDamage(this.specialDamage);
+                    showCombo('SPECIAL');
+                    return true;
+                }
+                return false;
+            }
+
+            checkHit(opponent) {
+                const attackRange = 80;
+                const distance = Math.abs(this.x - opponent.x);
+                const heightDiff = Math.abs(this.y - opponent.y);
+                
+                return distance < attackRange && heightDiff < 50;
+            }
+
+            takeDamage(damage) {
+                this.health = Math.max(0, this.health - damage);
+                this.hitStun = 20;
+            }
+
+            draw(ctx) {
+                // 身体
+                ctx.fillStyle = this.hitStun > 0 ? '#ffffff' : this.color;
+                ctx.strokeStyle = this.borderColor;
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, 5);
+                ctx.fill();
+                ctx.stroke();
+
+                // 头部
+                const headSize = 30;
+                ctx.fillStyle = '#ffd5b5';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + headSize/2, headSize / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // 眼睛
+                const eyeX = this.x + this.width / 2 + (this.facing * 8);
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(eyeX, this.y + headSize / 2 - 3, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 攻击效果
+                if (this.isAttacking) {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+                    const attackX = this.x + (this.facing === 1 ? this.width : -60);
+                    ctx.beginPath();
+                    ctx.arc(attackX + 30, this.y + this.height / 2, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // 必杀技效果
+                if (this.isSpecial) {
+                    ctx.fillStyle = 'rgba(255, 0, 255, 0.8)';
+                    const attackX = this.x + (this.facing === 1 ? this.width : -150);
+                    ctx.beginPath();
+                    ctx.arc(attackX + 75, this.y + this.height / 2, 60, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 能量波
+                    ctx.strokeStyle = '#ff00ff';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.arc(attackX + 75, this.y + this.height / 2, 80, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // 防御效果
+                if (this.isBlocking) {
+                    ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+                    ctx.beginPath();
+                    ctx.roundRect(this.x - 10, this.y - 10, this.width + 20, this.height + 20, 5);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // ==================== 游戏初始化 ====================
+        function init() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = CONFIG.canvasWidth;
+            canvas.height = CONFIG.canvasHeight;
+            
+            resetPlayers();
+            setupEventListeners();
+            showControlsHelp();
+        }
+
+        function resetPlayers() {
+            player1 = new Fighter(FIGHTERS.p1, 100, 1);
+            player2 = new Fighter(FIGHTERS.p2, CONFIG.canvasWidth - 160, -1);
+        }
+
+        function setupEventListeners() {
+            window.addEventListener('keydown', (e) => {
+                keys[e.key.toLowerCase()] = true;
+                keys[e.code] = true;
+            });
+
+            window.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+                keys[e.code] = false;
+            });
+        }
+
+        function showControlsHelp() {
+            const helpKeys = `
+            P1 控制:
+            - W: 跳跃
+            - A: 左移
+            - D: 右移
+            - S: 蹲下
+            - J: 拳攻击
+            - K: 脚攻击
+            - L: 必杀技
+            
+            P2 控制:
+            - ↑: 跳跃
+            - ←: 左移
+            - →: 右移
+            - ↓: 蹲下
+            - 1: 拳攻击
+            - 2: 脚攻击
+            - 3: 必杀技
+            
+            提示:
+            - 移动中按相反方向可以防御
+            - 必杀技需要能量满一半
+            - 连续攻击触发连击`;
+            
+            alert(helpKeys);
+        }
+
+        // ==================== 游戏循环 ====================
+        function gameLoop() {
+            if (gameState !== 'playing') return;
+
+            update();
+            draw();
+            animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            // P1 按键映射
+            const p1Keys = {
+                left: keys['a'],
+                right: keys['d'],
+                jump: keys['w'],
+                attack: keys['j'],
+                special: keys['l']
+            };
+
+            // P2 按键映射
+            const p2Keys = {
+                left: keys['arrowleft'],
+                right: keys['arrowright'],
+                jump: keys['arrowup'],
+                attack: keys['digit1'],
+                special: keys['digit3']
+            };
+
+            // 更新角色
+            player1.update(p1Keys, player2);
+            player2.update(p2Keys, player1);
+
+            // 处理攻击
+            if (p1Keys.attack) player1.attack(player2);
+            if (p2Keys.attack) player2.attack(player1);
+            if (p1Keys.special) player1.specialAttack(player2);
+            if (p2Keys.special) player2.specialAttack(player1);
+
+            // 更新UI
+            updateHUD();
+
+            // 检查游戏结束
+            checkGameOver();
+        }
+
+        function draw() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制背景（地面）
+            const gradient = ctx.createLinearGradient(0, CONFIG.groundY - 100, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.7, '#98FB98');
+            gradient.addColorStop(1, '#8B4513');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制地面
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(0, CONFIG.groundY, canvas.width, canvas.height - CONFIG.groundY);
+            ctx.fillStyle = '#7EC850';
+            ctx.fillRect(0, CONFIG.groundY, canvas.width, 10);
+
+            // 绘制角色
+            player1.draw(ctx);
+            player2.draw(ctx);
+        }
+
+        function updateHUD() {
+            document.getElementById('healthP1').style.width = player1.health + '%';
+            document.getElementById('healthP2').style.width = player2.health + '%';
+            document.getElementById('energyP1').style.width = player1.energy + '%';
+            document.getElementById('energyP2').style.width = player2.energy + '%';
+            document.getElementById('timer').textContent = timer;
+        }
+
+        function showCombo(combo) {
+            if (typeof combo === 'string') {
+                showComboText('SPECIAL!');
+            } else {
+                showComboText(combo + ' HITS!');
+            }
+        }
+
+        function showComboText(text) {
+            const existing = document.querySelector('.combo-display');
+            if (existing) existing.remove();
+
+            const comboEl = document.createElement('div');
+            comboEl.className = 'combo-display';
+            comboEl.textContent = text;
+            document.body.appendChild(comboEl);
+
+            setTimeout(() => {
+                comboEl.remove();
+            }, 1000);
+        }
+
+        function checkGameOver() {
+            if (player1.health <= 0 || player2.health <= 0) {
+                if (player1.health <= 0) {
+                    roundWins.p2++;
+                } else {
+                    roundWins.p1++;
+                }
+
+                if (roundWins.p1 >= 2 || roundWins.p2 >= 2) {
+                    endGame();
+                } else {
+                    nextRound();
+                }
+            } else if (timer <= 0) {
+                // 时间到，血量多的获胜
+                if (player1.health > player2.health) {
+                    roundWins.p1++;
+                } else if (player2.health > player1.health) {
+                    roundWins.p2++;
+                } else {
+                    // 平局，随机
+                    if (Math.random() > 0.5) {
+                        roundWins.p1++;
+                    } else {
+                        roundWins.p2++;
+                    }
+                }
+
+                if (roundWins.p1 >= 2 || roundWins.p2 >= 2) {
+                    endGame();
+                } else {
+                    nextRound();
+                }
+            }
+        }
+
+        function nextRound() {
+            clearInterval(timerInterval);
+            cancelAnimationFrame(animationFrame);
+            
+            // 重置状态
+            resetPlayers();
+            timer = CONFIG.roundTime;
+            gameState = 'paused';
+
+            const winner = roundWins.p1 > roundWins.p2 ? 'Player 1' : 'Player 2';
+            setTimeout(() => {
+                alert(`第 ${roundWins.p1 + roundWins.p2} 回合结束!\n当前比分: ${roundWins.p1} - ${roundWins.p2}`);
+                startRound();
+            }, 500);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            cancelAnimationFrame(animationFrame);
+            gameState = 'gameover';
+
+            const winner = roundWins.p1 >= 2 ? 'Player 1' : 'Player 2';
+            document.getElementById('winnerText').textContent = winner + ' 获胜!';
+            document.getElementById('scoreText').textContent = `最终比分: ${roundWins.p1} - ${roundWins.p2}`;
+            document.getElementById('gameOver').style.display = 'flex';
+        }
+
+        // ==================== 游戏控制 ====================
+        function startGame() {
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('gameScreen').classList.add('visible');
+            
+            roundWins = { p1: 0, p2: 0 };
+            startRound();
+        }
+
+        function startRound() {
+            gameState = 'playing';
+            resetPlayers();
+            timer = CONFIG.roundTime;
+            
+            // 开始计时器
+            timerInterval = setInterval(() => {
+                timer--;
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                }
+            }, 1000);
+
+            // 开始游戏循环
+            gameLoop();
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            startGame();
+        }
+
+        function goToMenu() {
+            clearInterval(timerInterval);
+            cancelAnimationFrame(animationFrame);
+            gameState = 'menu';
+
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('visible');
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'flex';
+        }
+
+        function showControls() {
+            showControlsHelp();
+        }
+
+        // ==================== 启动游戏 ====================
+        window.onload = init;
+    </script>
+</body>
+</html>
