@@ -674,6 +674,12 @@
                 }
             });
 
+            // 将鼠标约束添加到世界中（关键步骤！）
+            Composite.add(world, mouseConstraint);
+
+            // 确保 canvas 可以接收鼠标事件
+            canvas.style.cursor = 'pointer';
+
             // 鼠标移动事件
             canvas.addEventListener('mousemove', (e) => {
                 const rect = canvas.getBoundingClientRect();
@@ -930,7 +936,14 @@
         function handleMouseUp(e) {
             if (!currentBird || isBirdFlying || !slingConstraint) return;
 
-            const { World, Composite, Vector } = Matter;
+            const { World, Composite, Vector, Body } = Matter;
+
+            // 检查鼠标约束是否拖动了小鸟
+            const draggedBody = mouseConstraint.body;
+            if (draggedBody && draggedBody.label !== 'bird') {
+                console.log('未拖动小鸟，正在拖动:', draggedBody.label);
+                return;
+            }
 
             // 检查是否在弹弓区域
             const dist = Vector.magnitude(Vector.sub(mousePos, { x: CONFIG.slingshotX, y: CONFIG.slingshotY }));
