@@ -818,6 +818,50 @@
                 canvas.style.width = CONFIG.canvasWidth + 'px';
                 canvas.style.height = CONFIG.canvasHeight + 'px';
             }
+
+            // 重新创建 mouse 和 mouseConstraint 以匹配新的 canvas 尺寸
+            // 只在非游戏状态下重新创建，避免影响正在进行的游戏
+            if (world && mouseConstraint && gameState !== 'playing') {
+                const { Mouse, MouseConstraint, Composite } = Matter;
+                Composite.remove(world, mouseConstraint);
+
+                const mouse = Mouse.create(canvas);
+                mouseConstraint = MouseConstraint.create(engine, {
+                    mouse: mouse,
+                    constraint: {
+                        stiffness: 0.2,
+                        render: { visible: false }
+                    }
+                });
+                Composite.add(world, mouseConstraint);
+
+                // 重新绑定事件监听器
+                canvas.addEventListener('mousedown', handleMouseDown);
+                canvas.addEventListener('mouseup', handleMouseUp);
+                canvas.addEventListener('mousemove', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = CONFIG.canvasWidth / rect.width;
+                    const scaleY = CONFIG.canvasHeight / rect.height;
+                    mousePos.x = (e.clientX - rect.left) * scaleX;
+                    mousePos.y = (e.clientY - rect.top) * scaleY;
+                });
+                canvas.addEventListener('touchstart', (e) => {
+                    // 不阻止默认事件，允许拖动
+                }, { passive: false });
+                canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = CONFIG.canvasWidth / rect.width;
+                    const scaleY = CONFIG.canvasHeight / rect.height;
+                    mousePos.x = (touch.clientX - rect.left) * scaleX;
+                    mousePos.y = (touch.clientY - rect.top) * scaleY;
+                }, { passive: false });
+                canvas.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleMouseUp(e);
+                }, { passive: false });
+            }
         }
 
         // ==================== 场景管理 ====================

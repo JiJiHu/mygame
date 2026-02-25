@@ -809,15 +809,16 @@
                 // 裤子 (下半身)
                 ctx.fillStyle = '#2c3e50';
                 ctx.fillRect(this.x + 15, this.y + 75, 30, 45);
-                ctx.fill();
+                ctx.strokeStyle = '#1a1a2e';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x + 15, this.y + 75, 30, 45);
 
                 // 上身
                 ctx.fillStyle = baseColor;
                 ctx.strokeStyle = this.borderColor;
                 ctx.lineWidth = 3;
                 ctx.fillRect(this.x + 10, this.y + 30, 40, 50);
-                ctx.fill();
-                ctx.stroke();
+                ctx.strokeRect(this.x + 10, this.y + 30, 40, 50);
 
                 // 衣服线条
                 ctx.strokeStyle = this.borderColor;
@@ -895,8 +896,7 @@
                 // 前臂
                 const armX = this.facing === 1 ? this.x + 45 : this.x - 25;
                 ctx.fillRect(armX, this.y + 35, 20, 35);
-                ctx.fill();
-                ctx.stroke();
+                ctx.strokeRect(armX, this.y + 35, 20, 35);
 
                 // 手
                 ctx.fillStyle = '#ffd5b5';
@@ -912,15 +912,13 @@
                 const footWidth = 25;
                 const footHeight = 15;
                 ctx.fillRect(this.x + 12, this.y + 100, footWidth, footHeight);
-                ctx.fillRect(this.x + 35, this.y + 100, footWidth, footHeight, 3);
-                ctx.fill();
+                ctx.fillRect(this.x + 35, this.y + 100, footWidth, footHeight);
 
                 // 鞋子边框
                 ctx.strokeStyle = '#333';
                 ctx.lineWidth = 2;
-                ctx.fillRect(this.x + 12, this.y + 100, footWidth, footHeight);
-                ctx.fillRect(this.x + 35, this.y + 100, footWidth, footHeight, 3);
-                ctx.stroke();
+                ctx.strokeRect(this.x + 12, this.y + 100, footWidth, footHeight);
+                ctx.strokeRect(this.x + 35, this.y + 100, footWidth, footHeight);
 
                 // 攻击效果
                 if (this.isAttacking) {
@@ -951,7 +949,6 @@
                 if (this.isBlocking) {
                     ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
                     ctx.fillRect(this.x - 10, this.y - 10, this.width + 20, this.height + 20);
-                    ctx.fill();
                 }
             }
         }
@@ -961,18 +958,22 @@
             canvas = document.getElementById('gameCanvas');
             ctx = canvas.getContext('2d');
 
-            // 移动端自适应
+            // 确保 canvas 使用固定尺寸（不进行缩放）
+            // 移动端适配通过 CSS 实现，而不是缩放 canvas 内容
+            canvas.width = CONFIG.canvasWidth;
+            canvas.height = CONFIG.canvasHeight;
+
+            // 移动端：通过 CSS 缩放整个 canvas，而不是缩放内容
             if (window.innerWidth <= 768) {
                 const scale = Math.min(
                     (window.innerWidth - 40) / CONFIG.canvasWidth,
                     (window.innerHeight - 300) / CONFIG.canvasHeight
                 );
-                canvas.width = CONFIG.canvasWidth * scale;
-                canvas.height = CONFIG.canvasHeight * scale;
-                ctx.scale(scale, scale);
+                canvas.style.width = (CONFIG.canvasWidth * scale) + 'px';
+                canvas.style.height = (CONFIG.canvasHeight * scale) + 'px';
             } else {
-                canvas.width = CONFIG.canvasWidth;
-                canvas.height = CONFIG.canvasHeight;
+                canvas.style.width = CONFIG.canvasWidth + 'px';
+                canvas.style.height = CONFIG.canvasHeight + 'px';
             }
 
             resetPlayers();
