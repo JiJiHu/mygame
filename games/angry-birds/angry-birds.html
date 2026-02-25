@@ -366,6 +366,53 @@
                 padding: 8px 12px;
             }
         }
+
+        /* 移动端触摸优化 */
+        @media (pointer: coarse) {
+            #gameCanvas {
+                touch-action: none;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                user-select: none;
+            }
+
+            body {
+                overscroll-behavior: none;
+            }
+        }
+
+        /* 提示文字移动端优化 */
+        .hint-text {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            .hint-text {
+                font-size: 12px;
+                padding: 5px;
+            }
+        }
+
+        /* 模态框移动端适配 */
+        .modal-content {
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 20px;
+            }
+
+            .modal-btn {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -680,6 +727,10 @@
             // 确保 canvas 可以接收鼠标事件
             canvas.style.cursor = 'pointer';
 
+            // 移动端：添加触摸事件支持
+            // Matter.js 的 Mouse 会自动处理触摸事件
+            // 但我们需要确保触摸事件能正确传递
+
             // 鼠标移动事件
             canvas.addEventListener('mousemove', (e) => {
                 const rect = canvas.getBoundingClientRect();
@@ -689,11 +740,33 @@
                 mousePos.y = (e.clientY - rect.top) * scaleY;
             });
 
+            // 触摸移动事件（移动端）
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = CONFIG.canvasWidth / rect.width;
+                const scaleY = CONFIG.canvasHeight / rect.height;
+                mousePos.x = (touch.clientX - rect.left) * scaleX;
+                mousePos.y = (touch.clientY - rect.top) * scaleY;
+            }, { passive: false });
+
             // 鼠标释放事件（发射小鸟）
             canvas.addEventListener('mouseup', handleMouseUp);
 
+            // 触摸结束事件（移动端发射）
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleMouseUp(e);
+            }, { passive: false });
+
             // 点击事件（激活能力）
             canvas.addEventListener('mousedown', handleMouseDown);
+
+            // 触摸开始事件（移动端激活能力）
+            canvas.addEventListener('touchstart', (e) => {
+                // 不阻止默认事件，允许拖动
+            }, { passive: false });
 
             // 碰撞事件
             Events.on(engine, 'collisionStart', handleCollision);
@@ -707,11 +780,44 @@
             Runner.run(runner, engine);
             Render.run(render);
 
+            // 移动端自适应
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
             // 加载存档
             loadProgress();
 
             // 显示主菜单
             showMenu();
+        }
+
+        // 移动端自适应canvas大小
+        function resizeCanvas() {
+            const canvas = document.getElementById('gameCanvas');
+            const gameScreen = document.getElementById('gameScreen');
+
+            if (window.innerWidth <= 768) {
+                // 移动端：调整canvas大小以适应屏幕
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight - 100; // 留出UI空间
+
+                const desiredRatio = CONFIG.canvasWidth / CONFIG.canvasHeight;
+                const actualRatio = screenWidth / screenHeight;
+
+                if (actualRatio > desiredRatio) {
+                    // 屏幕更宽，以高度为准
+                    canvas.style.height = screenHeight + 'px';
+                    canvas.style.width = (screenHeight * desiredRatio) + 'px';
+                } else {
+                    // 屏幕更高，以宽度为准
+                    canvas.style.width = screenWidth + 'px';
+                    canvas.style.height = (screenWidth / desiredRatio) + 'px';
+                }
+            } else {
+                // 桌面端：保持原始比例
+                canvas.style.width = CONFIG.canvasWidth + 'px';
+                canvas.style.height = CONFIG.canvasHeight + 'px';
+            }
         }
 
         // ==================== 场景管理 ====================

@@ -329,6 +329,149 @@
         /* 隐藏/显示控制 */
         .hidden { display: none !important; }
         .visible { display: flex !important; }
+
+        /* 移动端虚拟控制 */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .controls-help {
+                display: none;
+            }
+
+            .game-container {
+                padding-bottom: 180px;
+            }
+
+            #gameCanvas {
+                max-width: 100%;
+                height: auto;
+            }
+
+            .menu-title {
+                font-size: 36px;
+            }
+
+            .menu-subtitle {
+                font-size: 18px;
+            }
+
+            .menu-btn {
+                width: 240px;
+                font-size: 18px;
+                padding: 15px 30px;
+            }
+
+            .hud {
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            .player-name {
+                font-size: 16px;
+            }
+
+            .health-bar-container {
+                height: 20px;
+            }
+
+            .timer {
+                font-size: 32px;
+            }
+        }
+
+        .joystick-container {
+            width: 120px;
+            height: 120px;
+        }
+
+        .joystick {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .joystick-knob {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 107, 53, 0.8);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.8);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .action-btn {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            transition: all 0.1s;
+        }
+
+        .action-btn:active {
+            background: rgba(255, 107, 53, 0.8);
+            transform: scale(0.95);
+            border-color: rgba(255, 107, 53, 1);
+        }
+
+        .btn-jump {
+            background: rgba(0, 255, 135, 0.5);
+        }
+
+        .btn-jump:active {
+            background: rgba(0, 255, 135, 0.8);
+        }
+
+        .btn-attack {
+            background: rgba(255, 0, 135, 0.5);
+        }
+
+        .btn-attack:active {
+            background: rgba(255, 0, 135, 0.8);
+        }
+
+        .btn-special {
+            background: rgba(255, 215, 0, 0.5);
+        }
+
+        .btn-special:active {
+            background: rgba(255, 215, 0, 0.8);
+        }
     </style>
 </head>
 <body>
@@ -389,6 +532,21 @@
                     <span class="key">2</span> 脚
                     <span class="key">3</span> 必杀
                 </div>
+            </div>
+        </div>
+
+        <!-- 移动端虚拟控制 -->
+        <div class="mobile-controls" id="mobileControls">
+            <div class="joystick-container">
+                <div class="joystick" id="joystick">
+                    <div class="joystick-knob" id="joystickKnob"></div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn btn-jump" data-action="jump">↑</button>
+                <button class="action-btn btn-attack" data-action="attack">👊</button>
+                <button class="action-btn btn-attack" data-action="attack2">🦶</button>
+                <button class="action-btn btn-special" data-action="special">⚡</button>
             </div>
         </div>
     </div>
@@ -775,9 +933,21 @@
         function init() {
             canvas = document.getElementById('gameCanvas');
             ctx = canvas.getContext('2d');
-            canvas.width = CONFIG.canvasWidth;
-            canvas.height = CONFIG.canvasHeight;
-            
+
+            // 移动端自适应
+            if (window.innerWidth <= 768) {
+                const scale = Math.min(
+                    (window.innerWidth - 40) / CONFIG.canvasWidth,
+                    (window.innerHeight - 300) / CONFIG.canvasHeight
+                );
+                canvas.width = CONFIG.canvasWidth * scale;
+                canvas.height = CONFIG.canvasHeight * scale;
+                ctx.scale(scale, scale);
+            } else {
+                canvas.width = CONFIG.canvasWidth;
+                canvas.height = CONFIG.canvasHeight;
+            }
+
             resetPlayers();
             setupEventListeners();
             showControlsHelp();
@@ -798,6 +968,101 @@
                 keys[e.key.toLowerCase()] = false;
                 keys[e.code] = false;
             });
+
+            setupMobileControls();
+        }
+
+        // ==================== 移动端控制 ====================
+        function setupMobileControls() {
+            const joystick = document.getElementById('joystick');
+            const joystickKnob = document.getElementById('joystickKnob');
+            const actionButtons = document.querySelectorAll('.action-btn');
+
+            // 虚拟摇杆控制
+            let joystickActive = false;
+            const joystickCenter = { x: 60, y: 60 };
+
+            joystick.addEventListener('touchstart', (e) => {
+                joystickActive = true;
+                handleJoystickTouch(e.touches[0]);
+            });
+
+            joystick.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (joystickActive) {
+                    handleJoystickTouch(e.touches[0]);
+                }
+            });
+
+            joystick.addEventListener('touchend', (e) => {
+                joystickActive = false;
+                resetJoystick();
+            });
+
+            function handleJoystickTouch(touch) {
+                const rect = joystick.getBoundingClientRect();
+                const touchX = touch.clientX - rect.left - joystickCenter.x;
+                const touchY = touch.clientY - rect.top - joystickCenter.y;
+
+                const maxMove = 35;
+                const distance = Math.min(Math.sqrt(touchX * touchX + touchY * touchY), maxMove);
+                const angle = Math.atan2(touchY, touchX);
+
+                const knobX = Math.cos(angle) * distance;
+                const knobY = Math.sin(angle) * distance;
+
+                joystickKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+
+                // 映射到游戏按键
+                if (distance > 10) {
+                    if (Math.abs(knobX) > Math.abs(knobY)) {
+                        keys['a'] = knobX < 0;
+                        keys['d'] = knobX > 0;
+                        keys['w'] = false;
+                    } else {
+                        keys['w'] = knobY < 0;
+                        keys['a'] = false;
+                        keys['d'] = false;
+                    }
+                }
+            }
+
+            function resetJoystick() {
+                joystickKnob.style.transform = 'translate(-50%, -50%)';
+                keys['w'] = keys['a'] = keys['d'] = false;
+            }
+
+            // 动作按钮控制
+            actionButtons.forEach(btn => {
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const action = btn.dataset.action;
+                    handleAction(action, true);
+                });
+
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    const action = btn.dataset.action;
+                    handleAction(action, false);
+                });
+            });
+        }
+
+        function handleAction(action, active) {
+            switch(action) {
+                case 'jump':
+                    keys['w'] = active;
+                    break;
+                case 'attack':
+                    keys['j'] = active;
+                    break;
+                case 'attack2':
+                    keys['k'] = active;
+                    break;
+                case 'special':
+                    keys['l'] = active;
+                    break;
+            }
         }
 
         function showControlsHelp() {
