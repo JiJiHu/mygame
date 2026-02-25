@@ -505,3 +505,41 @@ body {
         transform: translateY(-30px) rotate(10deg);
     }
 }
+
+/* 管理入口图标 */
+.admin-icons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.admin-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--onepage-cream);
+    padding: 15px 25px;
+    background: rgba(0, 102, 153, 0.6);
+    border-radius: 15px;
+    border: 2px solid var(--onepage-gold);
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.admin-icon:hover {
+    background: rgba(255, 215, 0, 0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.admin-icon-emoji {
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.admin-icon-label {
+    font-size: 12px;
+    font-weight: 500;
+}
