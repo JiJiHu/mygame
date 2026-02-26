@@ -661,19 +661,21 @@
                 this.facing = facing; // 1 = right, -1 = left
                 this.health = 100;
                 this.energy = 0;
-                this.isAttacking = false;
-                this.isSpecial = false;
+            this.isAttacking = false;
+                this.isKicking = false;
                 this.attackCooldown = 0;
+                this.kickCooldown = 0;
                 this.isGrounded = true;
                 this.combo = 0;
                 this.comboTimer = 0;
                 this.hitStun = 0;
                 this.isBlocking = false;
+                this.attackType = null; // 'punch', 'kick', 'special'
             }
 
-            update(keys, opponent) {
                 // 冷却递减
                 if (this.attackCooldown > 0) this.attackCooldown--;
+                if (this.kickCooldown > 0) this.kickCooldown--;
                 if (this.comboTimer > 0) {
                     this.comboTimer--;
                     if (this.comboTimer === 0) this.combo = 0;
@@ -728,19 +730,47 @@
                 }
             }
 
+                // 重力
+                this.vy += CONFIG.gravity;
+
+                // 更新位置
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // 地面检测
+                if (this.y > CONFIG.groundY - this.height) {
+                    this.y = CONFIG.groundY - this.height;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                }
+
+                // 边界检测
+                if (this.x < 0) this.x = 0;
+                if (this.x > CONFIG.canvasWidth - this.width) {
+                    this.x = CONFIG.canvasWidth - this.width;
+                }
+
+                // 面向对手
+                if (opponent) {
+                    this.facing = opponent.x > this.x ? 1 : -1;
+                }
+            }
+
             attack(opponent) {
                 if (this.attackCooldown > 0 || this.hitStun > 0) return false;
                 
                 this.isAttacking = true;
-                this.attackCooldown = 15;
-                this.hitStun = 5;
+                this.attackType = 'punch';
+                this.attackCooldown = 20;
+                this.hitStun = 8;
                 
                 setTimeout(() => {
                     this.isAttacking = false;
-                }, 100);
+                    this.attackType = null;
+                }, 150);
 
                 // 检测命中
-                if (this.checkHit(opponent)) {
+                if (this.checkHit(opponent, 80)) {
                     const damage = opponent.isBlocking ? this.damage * 0.2 : this.damage;
                     opponent.takeDamage(damage);
                     
@@ -754,6 +784,42 @@
                         if (this.combo > 2) {
                             showCombo(this.combo);
                         }
+                    }
+
+                    return true;
+                }
+                return false;
+            }
+            
+            kick(opponent) {
+                if (this.kickCooldown > 0 || this.hitStun > 0) return false;
+                
+                this.isKicking = true;
+                this.attackType = 'kick';
+                this.kickCooldown = 25;
+                this.hitStun = 12;
+                
+                setTimeout(() => {
+                    this.isKicking = false;
+                    this.attackType = null;
+                }, 200);
+
+                // 踢腿攻击范围更大
+                if (this.checkHit(opponent, 100)) {
+                    const kickDamage = this.damage * 1.3; // 踢腿伤害更高
+                    const damage = opponent.isBlocking ? kickDamage * 0.2 : kickDamage;
+                    opponent.takeDamage(damage);
+                    
+                    this.energy = Math.min(CONFIG.maxEnergy, this.energy + CONFIG.energyPerHit);
+                    
+                    if (!opponent.isBlocking) {
+                        this.combo++;
+                        this.comboTimer = 60;
+                        if (this.combo > 2) {
+                            showCombo(this.combo);
+                        }
+                        // 踢腿击退效果
+                        opponent.x += this.facing * 20;
                     }
 
                     return true;
@@ -786,12 +852,12 @@
                 return false;
             }
 
-            checkHit(opponent) {
-                const attackRange = 80;
+            checkHit(opponent, range = 80) {
+                const attackRange = range;
                 const distance = Math.abs(this.x - opponent.x);
                 const heightDiff = Math.abs(this.y - opponent.y);
                 
-                return distance < attackRange && heightDiff < 50;
+                return distance < attackRange && heightDiff < 60;
             }
 
             takeDamage(damage) {
@@ -801,154 +867,269 @@
 
             draw(ctx) {
                 const centerX = this.x + this.width / 2;
-                const centerY = this.y + this.height / 2;
-
+                const baseY = this.y;
+                
                 // 受击闪白效果
                 const baseColor = this.hitStun > 0 ? '#ffffff' : this.color;
-
-                // 裤子 (下半身)
+                const skinColor = this.hitStun > 0 ? '#ffffff' : '#ffd5b5';
+                
+                // === 绘制阴影 ===
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(centerX, baseY + this.height + 3, 25, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // === 腿部动画 ===
+                const legOffset = Math.sin(Date.now() / 100) * (Math.abs(this.vx) > 0.5 ? 5 : 0);
+                const kickExtend = this.isKicking ? this.facing * 40 : 0;
+                
+                // 后腿
+                ctx.fillStyle = '#1a2530';
+                ctx.beginPath();
+                ctx.moveTo(centerX - 8, baseY + 70);
+                ctx.lineTo(centerX - 18 + (this.facing === 1 ? -legOffset : legOffset), baseY + 115);
+                ctx.lineTo(centerX - 5, baseY + 115);
+                ctx.lineTo(centerX - 5, baseY + 70);
+                ctx.fill();
+                
+                // 前腿 (踢腿时伸出)
                 ctx.fillStyle = '#2c3e50';
-                ctx.fillRect(this.x + 15, this.y + 75, 30, 45);
-                ctx.strokeStyle = '#1a1a2e';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(this.x + 15, this.y + 75, 30, 45);
-
-                // 上身
+                ctx.beginPath();
+                ctx.moveTo(centerX + 8, baseY + 70);
+                ctx.lineTo(centerX + 18 + kickExtend, baseY + 70);
+                ctx.lineTo(centerX + 23 + kickExtend, baseY + 115);
+                ctx.lineTo(centerX - 2 + kickExtend, baseY + 115);
+                ctx.lineTo(centerX + 3, baseY + 70);
+                ctx.fill();
+                
+                // 鞋子
+                ctx.fillStyle = '#0f1419';
+                ctx.beginPath();
+                ctx.ellipse(centerX + 10 + kickExtend, baseY + 112, 15, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // === 身体 ===
+                // 躯干 (更立体的形状)
                 ctx.fillStyle = baseColor;
                 ctx.strokeStyle = this.borderColor;
-                ctx.lineWidth = 3;
-                ctx.fillRect(this.x + 10, this.y + 30, 40, 50);
-                ctx.strokeRect(this.x + 10, this.y + 30, 40, 50);
-
-                // 衣服线条
-                ctx.strokeStyle = this.borderColor;
                 ctx.lineWidth = 2;
+                
                 ctx.beginPath();
-                ctx.moveTo(centerX, this.y + 30);
-                ctx.lineTo(centerX, this.y + 75);
-                ctx.stroke();
-
-                // 头部 (更真实的人脸)
-                const headX = centerX;
-                const headY = this.y + 20;
-                const headRadius = 22;
-
-                // 头形
-                ctx.fillStyle = '#ffd5b5';
-                ctx.beginPath();
-                ctx.arc(headX, headY, headRadius, 0, Math.PI * 2);
+                ctx.moveTo(centerX - 20, baseY + 30);
+                ctx.quadraticCurveTo(centerX - 25, baseY + 50, centerX - 15, baseY + 75);
+                ctx.lineTo(centerX + 15, baseY + 75);
+                ctx.quadraticCurveTo(centerX + 25, baseY + 50, centerX + 20, baseY + 30);
+                ctx.closePath();
                 ctx.fill();
-                ctx.strokeStyle = '#e8c4a4';
-                ctx.lineWidth = 2;
                 ctx.stroke();
-
-                // 头发 (根据角色颜色)
-                ctx.fillStyle = this.borderColor;
+                
+                // 衣服细节
+                ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.arc(headX, headY - 5, headRadius * 0.9, Math.PI, 2 * Math.PI);
-                ctx.fill();
-
-                // 眼睛
-                const eyeOffset = this.facing * 6;
-                ctx.fillStyle = '#000';
-                ctx.beginPath();
-                ctx.arc(headX + eyeOffset - 5, headY - 2, 3, 0, Math.PI * 2);
-                ctx.arc(headX + eyeOffset + 5, headY - 2, 3, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 眉毛
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(headX + eyeOffset - 9, headY - 8);
-                ctx.lineTo(headX + eyeOffset - 1, headY - 7);
-                ctx.moveTo(headX + eyeOffset + 9, headY - 8);
-                ctx.lineTo(headX + eyeOffset + 1, headY - 7);
+                ctx.moveTo(centerX, baseY + 35);
+                ctx.lineTo(centerX, baseY + 70);
                 ctx.stroke();
-
-                // 鼻子
-                ctx.fillStyle = '#d4a574';
-                ctx.beginPath();
-                ctx.moveTo(headX + eyeOffset + 2, headY + 2);
-                ctx.lineTo(headX + eyeOffset + 4, headY + 5);
-                ctx.lineTo(headX + eyeOffset, headY + 5);
-                ctx.fill();
-
-                // 嘴巴（根据状态变化）
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                if (this.hitStun > 0) {
-                    // 痛苦表情
-                    ctx.arc(headX + eyeOffset, headY + 8, 5, 0, Math.PI);
-                } else {
-                    // 正常表情
-                    ctx.moveTo(headX + eyeOffset - 3, headY + 8);
-                    ctx.lineTo(headX + eyeOffset + 3, headY + 8);
-                }
-                ctx.stroke();
-
-                // 手臂
+                
+                // 腰带
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(centerX - 18, baseY + 68, 36, 8);
+                ctx.strokeStyle = '#5D3A1A';
+                ctx.strokeRect(centerX - 18, baseY + 68, 36, 8);
+                
+                // === 手臂和拳头 ===
+                const punchExtend = this.isAttacking ? this.facing * 45 : 0;
+                const armAngle = this.isAttacking ? -0.3 : 0.2;
+                
+                // 后臂
                 ctx.fillStyle = baseColor;
-                ctx.strokeStyle = this.borderColor;
-                ctx.lineWidth = 3;
-
-                // 前臂
-                const armX = this.facing === 1 ? this.x + 45 : this.x - 25;
-                ctx.fillRect(armX, this.y + 35, 20, 35);
-                ctx.strokeRect(armX, this.y + 35, 20, 35);
-
-                // 手
-                ctx.fillStyle = '#ffd5b5';
                 ctx.beginPath();
-                ctx.arc(armX + 10, this.y + 55, 8, 0, Math.PI * 2);
+                ctx.moveTo(centerX - 20, baseY + 35);
+                ctx.quadraticCurveTo(centerX - 30, baseY + 50, centerX - 25, baseY + 65);
+                ctx.lineTo(centerX - 15, baseY + 65);
+                ctx.quadraticCurveTo(centerX - 20, baseY + 50, centerX - 12, baseY + 40);
+                ctx.fill();
+                ctx.strokeStyle = this.borderColor;
+                ctx.stroke();
+                
+                // 前臂 (拳击时伸出)
+                ctx.fillStyle = baseColor;
+                ctx.beginPath();
+                ctx.moveTo(centerX + 20, baseY + 35);
+                ctx.quadraticCurveTo(centerX + 35 + punchExtend, baseY + 40 + armAngle * 20, centerX + 40 + punchExtend, baseY + 50);
+                ctx.lineTo(centerX + 35 + punchExtend, baseY + 60);
+                ctx.quadraticCurveTo(centerX + 25 + punchExtend, baseY + 50, centerX + 15, baseY + 40);
+                ctx.fill();
+                ctx.stroke();
+                
+                // 拳头
+                ctx.fillStyle = skinColor;
+                ctx.beginPath();
+                ctx.arc(centerX + 40 + punchExtend, baseY + 55, 10, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.strokeStyle = '#e8c4a4';
                 ctx.lineWidth = 1;
                 ctx.stroke();
-
-                // 脚部
-                ctx.fillStyle = '#1a1a2e';
-                const footWidth = 25;
-                const footHeight = 15;
-                ctx.fillRect(this.x + 12, this.y + 100, footWidth, footHeight);
-                ctx.fillRect(this.x + 35, this.y + 100, footWidth, footHeight);
-
-                // 鞋子边框
-                ctx.strokeStyle = '#333';
+                
+                // === 头部 ===
+                const headX = centerX;
+                const headY = baseY + 18;
+                
+                // 脖子
+                ctx.fillStyle = skinColor;
+                ctx.fillRect(centerX - 6, baseY + 20, 12, 12);
+                
+                // 头形
+                ctx.fillStyle = skinColor;
+                ctx.beginPath();
+                ctx.ellipse(headX, headY, 18, 20, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#e8c4a4';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // 头发 (根据角色颜色)
+                ctx.fillStyle = this.borderColor;
+                ctx.beginPath();
+                ctx.moveTo(headX - 18, headY - 5);
+                ctx.quadraticCurveTo(headX - 15, headY - 25, headX, headY - 22);
+                ctx.quadraticCurveTo(headX + 15, headY - 25, headX + 18, headY - 5);
+                ctx.quadraticCurveTo(headX + 20, headY, headX + 18, headY + 5);
+                ctx.lineTo(headX - 18, headY + 5);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 发际线
+                ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(headX - 12, headY - 10);
+                ctx.quadraticCurveTo(headX, headY - 15, headX + 12, headY - 10);
+                ctx.stroke();
+                
+                // 眼睛
+                const eyeOffsetX = this.facing * 5;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.ellipse(headX + eyeOffsetX - 6, headY, 5, 4, 0, 0, Math.PI * 2);
+                ctx.ellipse(headX + eyeOffsetX + 6, headY, 5, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 瞳孔
+                ctx.fillStyle = '#2c1810';
+                ctx.beginPath();
+                ctx.arc(headX + eyeOffsetX - 5 + this.facing, headY, 2.5, 0, Math.PI * 2);
+                ctx.arc(headX + eyeOffsetX + 7 + this.facing, headY, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 眉毛
+                ctx.strokeStyle = this.borderColor;
                 ctx.lineWidth = 2;
-                ctx.strokeRect(this.x + 12, this.y + 100, footWidth, footHeight);
-                ctx.strokeRect(this.x + 35, this.y + 100, footWidth, footHeight);
-
-                // 攻击效果
-                if (this.isAttacking) {
-                    ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
-                    const attackX = this.x + (this.facing === 1 ? this.width : -60);
-                    ctx.beginPath();
-                    ctx.arc(attackX + 30, this.y + this.height / 2, 25, 0, Math.PI * 2);
-                    ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(headX + eyeOffsetX - 10, headY - 6);
+                ctx.quadraticCurveTo(headX + eyeOffsetX - 5, headY - 8, headX + eyeOffsetX - 2, headY - 6);
+                ctx.moveTo(headX + eyeOffsetX + 10, headY - 6);
+                ctx.quadraticCurveTo(headX + eyeOffsetX + 5, headY - 8, headX + eyeOffsetX + 2, headY - 6);
+                ctx.stroke();
+                
+                // 鼻子
+                ctx.fillStyle = '#e8c4a4';
+                ctx.beginPath();
+                ctx.moveTo(headX + eyeOffsetX + 1, headY + 2);
+                ctx.lineTo(headX + eyeOffsetX + 4, headY + 8);
+                ctx.lineTo(headX + eyeOffsetX, headY + 6);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 嘴巴
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (this.hitStun > 0) {
+                    ctx.arc(headX + eyeOffsetX, headY + 12, 4, 0, Math.PI);
+                } else if (this.isAttacking || this.isKicking) {
+                    ctx.moveTo(headX + eyeOffsetX - 5, headY + 12);
+                    ctx.lineTo(headX + eyeOffsetX + 5, headY + 12);
+                } else {
+                    ctx.arc(headX + eyeOffsetX, headY + 11, 3, 0.1 * Math.PI, 0.9 * Math.PI);
                 }
-
-                // 必杀技效果
-                if (this.isSpecial) {
-                    ctx.fillStyle = 'rgba(255, 0, 255, 0.8)';
-                    const attackX = this.x + (this.facing === 1 ? this.width : -150);
+                ctx.stroke();
+                
+                // === 攻击效果 ===
+                if (this.isAttacking) {
+                    // 拳击冲击波
+                    ctx.fillStyle = 'rgba(255, 200, 0, 0.6)';
+                    ctx.strokeStyle = 'rgba(255, 150, 0, 0.8)';
+                    ctx.lineWidth = 3;
+                    const attackX = centerX + (this.facing === 1 ? 60 : -60);
                     ctx.beginPath();
-                    ctx.arc(attackX + 75, this.y + this.height / 2, 60, 0, Math.PI * 2);
+                    ctx.arc(attackX, baseY + 55, 20, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.stroke();
                     
-                    // 能量波
-                    ctx.strokeStyle = '#ff00ff';
-                    ctx.lineWidth = 5;
+                    // 冲击线
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.lineWidth = 2;
+                    for (let i = 0; i < 3; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(attackX - 15 + i * 5, baseY + 40);
+                        ctx.lineTo(attackX + 15 + i * 5, baseY + 70);
+                        ctx.stroke();
+                    }
+                }
+                
+                if (this.isKicking) {
+                    // 踢腿冲击波
+                    ctx.fillStyle = 'rgba(0, 255, 200, 0.6)';
+                    ctx.strokeStyle = 'rgba(0, 200, 150, 0.8)';
+                    ctx.lineWidth = 3;
+                    const kickX = centerX + (this.facing === 1 ? 70 : -70);
                     ctx.beginPath();
-                    ctx.arc(attackX + 75, this.y + this.height / 2, 80, 0, Math.PI * 2);
+                    ctx.arc(kickX, baseY + 110, 25, 0, Math.PI * 2);
+                    ctx.fill();
                     ctx.stroke();
                 }
-
+                
+                if (this.isSpecial) {
+                    // 必杀技效果
+                    const specialX = centerX + (this.facing === 1 ? 80 : -80);
+                    
+                    // 能量球
+                    ctx.fillStyle = 'rgba(255, 50, 150, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(specialX, baseY + 60, 50, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 能量波纹
+                    ctx.strokeStyle = 'rgba(255, 100, 200, 0.9)';
+                    ctx.lineWidth = 4;
+                    for (let i = 0; i < 3; i++) {
+                        ctx.beginPath();
+                        ctx.arc(specialX, baseY + 60, 60 + i * 15, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    
+                    // 光芒
+                    ctx.strokeStyle = 'rgba(255, 200, 255, 0.7)';
+                    ctx.lineWidth = 2;
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI * 2;
+                        ctx.beginPath();
+                        ctx.moveTo(specialX + Math.cos(angle) * 30, baseY + 60 + Math.sin(angle) * 30);
+                        ctx.lineTo(specialX + Math.cos(angle) * 70, baseY + 60 + Math.sin(angle) * 70);
+                        ctx.stroke();
+                    }
+                }
+                
                 // 防御效果
                 if (this.isBlocking) {
-                    ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
-                    ctx.fillRect(this.x - 10, this.y - 10, this.width + 20, this.height + 20);
+                    ctx.fillStyle = 'rgba(100, 200, 255, 0.3)';
+                    ctx.strokeStyle = 'rgba(100, 200, 255, 0.8)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.ellipse(centerX, baseY + 60, 35, 55, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
                 }
             }
         }
@@ -1137,16 +1318,18 @@
                 right: keys['d'],
                 jump: keys['w'],
                 attack: keys['j'],
+                kick: keys['k'],
                 special: keys['l']
             };
 
             // P2 按键映射
-            const p2Keys = {
+            let p2Keys = {
                 left: keys['arrowleft'],
                 right: keys['arrowright'],
                 jump: keys['arrowup'],
-                attack: keys['digit1'],
-                special: keys['digit3']
+                attack: keys['digit1'] || keys['numpad1'],
+                kick: keys['digit2'] || keys['numpad2'],
+                special: keys['digit3'] || keys['numpad3']
             };
 
             // AI 对战模式
@@ -1162,9 +1345,17 @@
             // 处理攻击
             if (p1Keys.attack) player1.attack(player2);
             if (p2Keys.attack) player2.attack(player1);
+            if (p1Keys.kick) player1.kick(player2);
+            if (p2Keys.kick) player2.kick(player1);
             if (p1Keys.special) player1.specialAttack(player2);
             if (p2Keys.special) player2.specialAttack(player1);
 
+            // 更新UI
+            updateHUD();
+
+            // 检查游戏结束
+            checkGameOver();
+        }
             // 更新UI
             updateHUD();
 
@@ -1345,7 +1536,7 @@
             // AI 决策逻辑
             if (aiActionTimer <= 0) {
                 // 重置AI操作
-                aiKeys = { left: false, right: false, jump: false, attack: false, special: false };
+                aiKeys = { left: false, right: false, jump: false, attack: false, kick: false, special: false };
 
                 // 根据距离决定行动
                 if (distance > 150) {
@@ -1354,17 +1545,21 @@
                     aiKeys.right = humanPlayer.x > aiPlayer.x;
                     aiKeys.left = humanPlayer.x < aiPlayer.x;
                     aiActionTimer = 20;
-                } else if (distance < 60 && isFacingHuman) {
+                } else if (distance < 80 && isFacingHuman) {
                     // 攻击范围
                     const randomAction = Math.random();
-                    if (aiPlayer.energy >= 50 && randomAction < 0.2) {
+                    if (aiPlayer.energy >= 50 && randomAction < 0.15) {
                         aiCurrentAction = 'special';
                         aiKeys.special = true;
                         aiActionTimer = 10;
-                    } else if (randomAction < 0.7) {
+                    } else if (randomAction < 0.4) {
                         aiCurrentAction = 'attack';
                         aiKeys.attack = true;
                         aiActionTimer = 15;
+                    } else if (randomAction < 0.65) {
+                        aiCurrentAction = 'kick';
+                        aiKeys.kick = true;
+                        aiActionTimer = 18;
                     } else {
                         aiCurrentAction = 'retreat';
                         aiKeys.left = humanPlayer.x > aiPlayer.x;
@@ -1387,10 +1582,11 @@
                 }
 
                 // 防御决策
-                if (humanPlayer.isAttacking && distance < 100 && Math.random() < 0.5) {
+                if ((humanPlayer.isAttacking || humanPlayer.isKicking) && distance < 100 && Math.random() < 0.5) {
                     aiKeys.right = humanPlayer.x > aiPlayer.x;
                     aiKeys.left = humanPlayer.x < aiPlayer.x;
                 }
+            }
             }
         }
 

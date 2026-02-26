@@ -753,21 +753,34 @@
 
             // 鼠标释放事件（发射小鸟）
             canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mousedown', handleMouseDown);
+            
+            // 触摸事件
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = CONFIG.canvasWidth / rect.width;
+                const scaleY = CONFIG.canvasHeight / rect.height;
+                mousePos.x = (touch.clientX - rect.left) * scaleX;
+                mousePos.y = (touch.clientY - rect.top) * scaleY;
+                handleMouseDown(e);
+            }, { passive: false });
 
-            // 触摸结束事件（移动端发射）
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = CONFIG.canvasWidth / rect.width;
+                const scaleY = CONFIG.canvasHeight / rect.height;
+                mousePos.x = (touch.clientX - rect.left) * scaleX;
+                mousePos.y = (touch.clientY - rect.top) * scaleY;
+            }, { passive: false });
+
             canvas.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 handleMouseUp(e);
             }, { passive: false });
-
-            // 点击事件（激活能力）
-            canvas.addEventListener('mousedown', handleMouseDown);
-
-            // 触摸开始事件（移动端激活能力）
-            canvas.addEventListener('touchstart', (e) => {
-                // 不阻止默认事件，允许拖动
-            }, { passive: false });
-
             // 碰撞事件
             Events.on(engine, 'collisionStart', handleCollision);
 
@@ -1063,52 +1076,92 @@
             currentBird.birdData = birdData;
             currentBird.originalRadius = birdData.radius;
             currentBird.canActivate = true;
+            // 标记为可拖动（在弹弓上）
+            currentBird.isDraggable = true;
+            currentBird.isStatic = false;
 
             Composite.add(world, currentBird);
 
-            // 创建弹弓约束
-            slingConstraint = Constraint.create({
-                pointA: { x: CONFIG.slingshotX, y: CONFIG.slingshotY },
-                bodyB: currentBird,
-                stiffness: 0.05,
-                damping: 0.01,
-                length: 10,
-                render: { visible: false }
-            });
-
-            Composite.add(world, slingConstraint);
+            // 不立即创建弹弓约束 - 等待拖动时创建
+            slingConstraint = null;
 
             isBirdFlying = false;
             canActivateAbility = false;
         }
 
         // ==================== 弹弓控制 ====================
+        // 拖动状态
+        let isDraggingBird = false;
+        let isMousePressed = false;
+        
+        function handleMouseDown(e) {
+            isMousePressed = true;
+            
+            if (!currentBird || isBirdFlying) return;
+            
+            const { Vector, Body, Constraint, Composite } = Matter;
+            
+            // 检查是否点击在小鸟附近
+            const dist = Vector.magnitude(Vector.sub(mousePos, currentBird.position));
+            if (dist > currentBird.birdData.radius + 20) return;
+            
+            // 如果小鸟在弹弓位置附近（允许拖动）
+            const distToSlingshot = Vector.magnitude(Vector.sub(currentBird.position, { x: CONFIG.slingshotX, y: CONFIG.slingshotY }));
+            if (distToSlingshot > CONFIG.maxPullDistance * 2.5) return;
+            
+            // 开始拖动
+            isDraggingBird = true;
+            
+            // 创建弹弓约束（如果没有）
+            if (!slingConstraint) {
+                slingConstraint = Constraint.create({
+                    pointA: { x: CONFIG.slingshotX, y: CONFIG.slingshotY },
+                    bodyB: currentBird,
+                    stiffness: 0.05,
+                    damping: 0.01,
+                    length: 0,
+                    render: { visible: false }
+                });
+                Composite.add(world, slingConstraint);
+            }
+        }
+
+        function handleMouseMove(e) {
+            // 处理触摸移动
+            if (e.touches) {
+                const touch = e.touches[0];
+                const rect = document.getElementById('gameCanvas').getBoundingClientRect();
+                const scaleX = CONFIG.canvasWidth / rect.width;
+                const scaleY = CONFIG.canvasHeight / rect.height;
+                mousePos.x = (touch.clientX - rect.left) * scaleX;
+                mousePos.y = (touch.clientY - rect.top) * scaleY;
+            }
+        }
+
         function handleMouseUp(e) {
-            if (!currentBird || isBirdFlying || !slingConstraint) return;
-
-            const { World, Composite, Vector, Body } = Matter;
-
-            // 检查鼠标约束是否拖动了小鸟
-            const draggedBody = mouseConstraint.body;
-            if (draggedBody && draggedBody.label !== 'bird') {
-                console.log('未拖动小鸟，正在拖动:', draggedBody.label);
+            isMousePressed = false;
+            
+            // 处理飞行中小鸟的特殊能力激活
+            if (currentBird && isBirdFlying && canActivateAbility && currentBird.canActivate) {
+                activateBirdAbility();
                 return;
             }
+            
+            if (!currentBird || !isDraggingBird || !slingConstraint) return;
+            
+            isDraggingBird = false;
+            const { World, Composite, Vector, Body } = Matter;
 
-            // 检查是否在弹弓区域
-            const dist = Vector.magnitude(Vector.sub(mousePos, { x: CONFIG.slingshotX, y: CONFIG.slingshotY }));
-            if (dist > CONFIG.maxPullDistance * 1.5) return;
-
-            // 检查小鸟是否被拖动
-            if (!mouseConstraint.body || mouseConstraint.body !== currentBird) return;
-
-            // 发射小鸟
+            // 计算发射向量
             const pullVector = Vector.sub({ x: CONFIG.slingshotX, y: CONFIG.slingshotY }, currentBird.position);
-            const pullDistance = Math.min(Vector.magnitude(pullVector), CONFIG.maxPullDistance);
+            const pullDistance = Vector.magnitude(pullVector);
 
-            if (pullDistance < 20) {
+            if (pullDistance < 25) {
                 // 拉距不够，重置小鸟位置
                 Body.setPosition(currentBird, { x: CONFIG.slingshotX, y: CONFIG.slingshotY });
+                Body.setVelocity(currentBird, { x: 0, y: 0 });
+                Composite.remove(world, slingConstraint);
+                slingConstraint = null;
                 return;
             }
 
@@ -1117,21 +1170,22 @@
             slingConstraint = null;
 
             // 应用发射力
-            const force = Vector.mult(Vector.normalise(pullVector), pullDistance * CONFIG.launchForceMultiplier);
+            const clampedDistance = Math.min(pullDistance, CONFIG.maxPullDistance);
+            const force = Vector.mult(Vector.normalise(pullVector), clampedDistance * CONFIG.launchForceMultiplier);
             Body.applyForce(currentBird, currentBird.position, force);
 
             isBirdFlying = true;
             canActivateAbility = true;
+            currentBird.isDraggable = false;
             usedBirds++;
 
             // 延迟检查小鸟状态
             setTimeout(checkBirdStatus, 500);
         }
-
-        function handleMouseDown(e) {
-            if (!currentBird || !isBirdFlying || !canActivateAbility) return;
-            if (!currentBird.canActivate) return;
-
+        
+        function activateBirdAbility() {
+            if (!currentBird || !currentBird.canActivate) return;
+            
             const { World, Bodies, Composite, Body, Vector } = Matter;
             const birdType = currentBird.birdType;
 
@@ -1177,7 +1231,6 @@
                         });
                         Composite.add(world, miniBird);
                     }
-                    // 移除原小鸟
                     Composite.remove(world, currentBird);
                     currentBird = null;
                     break;
@@ -1210,7 +1263,6 @@
                     const explosionPos = currentBird.position;
                     const explosionRadius = currentBird.birdData.abilityParam;
 
-                    // 应用爆炸力
                     const allBodies = Composite.allBodies(world);
                     allBodies.forEach(body => {
                         if (body.isStatic) return;
@@ -1219,24 +1271,18 @@
                             const forceMag = (explosionRadius - dist) * 0.5;
                             const dir = Vector.normalise(Vector.sub(body.position, explosionPos));
                             Body.applyForce(body, body.position, Vector.mult(dir, forceMag));
-
-                            // 造成额外伤害
                             if (body.label === 'pig') {
                                 body.health -= 50;
                             }
                         }
                     });
 
-                    // 创建爆炸视觉效果
                     createExplosionEffect(explosionPos);
-
-                    // 移除原小鸟
                     Composite.remove(world, currentBird);
                     currentBird = null;
                     break;
             }
 
-            // 延迟加载下一只小鸟
             setTimeout(() => {
                 if (gameState === 'playing') {
                     loadNextBird();
