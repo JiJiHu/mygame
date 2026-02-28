@@ -210,6 +210,20 @@
             border: 2px solid white;
         }
 
+        .menu-back-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 100;
+        }
+
         .restart-btn {
             background: #FF6347;
             color: white;
@@ -438,6 +452,7 @@
     <div id="gameScreen" class="screen">
         <canvas id="gameCanvas"></canvas>
         <div class="game-ui">
+            <button class="menu-back-btn" onclick="backToLevelSelect()">← 返回</button>
             <div class="score-display">得分: <span id="scoreValue">0</span></div>
             <div class="birds-remaining" id="birdsDisplay"></div>
             <button class="restart-btn" onclick="restartLevel()">🔄 重新开始</button>
@@ -1082,6 +1097,17 @@
 
             Composite.add(world, currentBird);
 
+            // 创建保持约束，让小鸟保持在弹弓上直到被拖动
+            const holdingConstraint = Constraint.create({
+                pointA: { x: CONFIG.slingshotX, y: CONFIG.slingshotY },
+                bodyB: currentBird,
+                stiffness: 1,
+                length: 0,
+                render: { visible: false }
+            });
+            Composite.add(world, holdingConstraint);
+            currentBird.holdingConstraint = holdingConstraint;
+
             // 不立即创建弹弓约束 - 等待拖动时创建
             slingConstraint = null;
 
@@ -1135,6 +1161,7 @@
             isDraggingBird = true;
             
             // 创建弹弓约束（如果没有）
+            if (currentBird.holdingConstraint) { Composite.remove(world, currentBird.holdingConstraint); currentBird.holdingConstraint = null; }
             if (!slingConstraint) {
                 slingConstraint = Constraint.create({
                     pointA: { x: CONFIG.slingshotX, y: CONFIG.slingshotY },
