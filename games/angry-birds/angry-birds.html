@@ -1184,6 +1184,14 @@
         }
 
         function handleMouseMove(e) {
+            // 处理鼠标移动
+            if (!e.touches) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = CONFIG.canvasWidth / rect.width;
+                const scaleY = CONFIG.canvasHeight / rect.height;
+                mousePos.x = (e.clientX - rect.left) * scaleX;
+                mousePos.y = (e.clientY - rect.top) * scaleY;
+            }
             // 处理触摸移动
             if (e.touches) {
                 const touch = e.touches[0];
