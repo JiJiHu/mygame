@@ -3,7 +3,7 @@
 # 用途：备份排行榜数据和关键文件
 
 LOG_FILE="/tmp/backup.log"
-BACKUP_DIR="/root/myopencode/games/backups"
+BACKUP_DIR="/root/mygame/games/backups"
 DATE=$(date +%Y%m%d)
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
@@ -12,13 +12,19 @@ log() {
     echo "[$TIMESTAMP] $1" | tee -a $LOG_FILE
 }
 
+# 飞书提醒函数
+send_feishu_notify() {
+    local message="$1"
+    openclaw message send --channel feishu --target "chat:oc_ab3b2955589b1427d85a997fc3a9d5fc" --message "$message" 2>/dev/null
+}
+
 # 创建备份目录
 mkdir -p $BACKUP_DIR
 
 log "🔄 开始每日备份..."
 
 # 备份排行榜数据
-DATA_FILE="/root/myopencode/games/leaderboard-data.json"
+DATA_FILE="/root/mygame/games/leaderboard-data.json"
 BACKUP_FILE="$BACKUP_DIR/leaderboard-data.json.backup.$DATE"
 
 if [ -f "$DATA_FILE" ]; then
@@ -53,4 +59,5 @@ BACKUP_COUNT=$(ls -1 *.backup.* 2>/dev/null | wc -l)
 log "📊 当前备份数量: $BACKUP_COUNT"
 
 log "✅ 每日备份完成"
+send_feishu_notify "✅ mygame 每日备份完成 - 备份数: $BACKUP_COUNT, 大小: $SIZE"
 echo ""

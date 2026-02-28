@@ -1101,8 +1101,30 @@
             
             const { Vector, Body, Constraint, Composite } = Matter;
             
+            // 获取点击位置（支持鼠标和触摸）
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            // 计算实际的鼠标/触摸位置
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = CONFIG.canvasWidth / rect.width;
+            const scaleY = CONFIG.canvasHeight / rect.height;
+            const clickPos = {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+            
             // 检查是否点击在小鸟附近
-            const dist = Vector.magnitude(Vector.sub(mousePos, currentBird.position));
+            const dist = Vector.magnitude(Vector.sub(clickPos, currentBird.position));
             if (dist > currentBird.birdData.radius + 20) return;
             
             // 如果小鸟在弹弓位置附近（允许拖动）
