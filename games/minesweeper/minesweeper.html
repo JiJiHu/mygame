@@ -820,7 +820,7 @@
 
             // 使用事件委托：在 boardEl 上添加统一的事件监听器
             boardEl.addEventListener('click', handleBoardClick);
-            boardEl.addEventListener('contextmenu', handleBoardContext);
+            boardEl.addEventListener('contextmenu', (e) => { e.preventDefault(); handleBoardContext(e); });
             boardEl.addEventListener('touchstart', handleBoardTouchStart, { passive: true });
             boardEl.addEventListener('touchend', handleBoardTouchEnd, { passive: false });
             boardEl.addEventListener('touchmove', handleBoardTouchMove, { passive: true });
