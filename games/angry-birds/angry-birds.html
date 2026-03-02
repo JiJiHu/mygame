@@ -47,6 +47,12 @@
             transform: rotate(90deg);
         }
 
+        .close-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: rotate(90deg);
+        }
+
         .game-container {
             width: 100vw;
             height: 100vh;
@@ -438,7 +444,7 @@
     </style>
 </head>
 <body>
-    <button class="close-btn" onclick="goBackHome()" title="返回主页">×</button>
+    <button class="close-btn" id="closeBtn" onclick="goBackHome()" title="返回主页">×</button>
 
     <!-- 主菜单 -->
     <div id="menuScreen" class="screen active">
@@ -777,6 +783,7 @@
             // 鼠标释放事件（发射小鸟）
             canvas.addEventListener('mouseup', handleMouseUp);
             canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
             
             // 触摸事件
             canvas.addEventListener('touchstart', (e) => {
@@ -874,13 +881,7 @@
                 // 重新绑定事件监听器
                 canvas.addEventListener('mousedown', handleMouseDown);
                 canvas.addEventListener('mouseup', handleMouseUp);
-                canvas.addEventListener('mousemove', (e) => {
-                    const rect = canvas.getBoundingClientRect();
-                    const scaleX = CONFIG.canvasWidth / rect.width;
-                    const scaleY = CONFIG.canvasHeight / rect.height;
-                    mousePos.x = (e.clientX - rect.left) * scaleX;
-                    mousePos.y = (e.clientY - rect.top) * scaleY;
-                });
+                canvas.addEventListener('mousemove', handleMouseMove);
                 canvas.addEventListener('touchstart', (e) => {
                     // 不阻止默认事件，允许拖动
                 }, { passive: false });
@@ -904,6 +905,14 @@
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
+            
+            // 游戏界面中隐藏返回主页按钮，避免与得分显示重叠
+            const closeBtn = document.getElementById('closeBtn');
+            if (screenId === 'gameScreen') {
+                closeBtn.style.display = 'none';
+            } else {
+                closeBtn.style.display = 'flex';
+            }
         }
 
         function showMenu() {
@@ -1165,11 +1174,13 @@
             const distToSlingshot = Vector.magnitude(Vector.sub(currentBird.position, { x: CONFIG.slingshotX, y: CONFIG.slingshotY }));
             if (distToSlingshot > CONFIG.maxPullDistance * 2.5) return;
             
+            // 先移除强保持约束（stiffness:1 太强，阻止拖动）
+            if (currentBird.holdingConstraint) { Composite.remove(world, currentBird.holdingConstraint); currentBird.holdingConstraint = null; }
+            
             // 开始拖动
             isDraggingBird = true;
             
             // 创建弹弓约束（如果没有）
-            if (currentBird.holdingConstraint) { Composite.remove(world, currentBird.holdingConstraint); currentBird.holdingConstraint = null; }
             if (!slingConstraint) {
                 slingConstraint = Constraint.create({
                     pointA: { x: CONFIG.slingshotX, y: CONFIG.slingshotY },
