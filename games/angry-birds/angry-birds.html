@@ -1137,7 +1137,7 @@
         // ==================== 弹弓控制 ====================
         // 拖动状态
         let isDraggingBird = false;
-        let dragOffset = { x: 0, y: 0 };
+        let isDragStarted = false;
         
         function handleMouseDown(e) {
             e.preventDefault();
@@ -1145,7 +1145,7 @@
             
             if (!currentBird || isBirdFlying) return;
             
-            const { Vector, Body, Constraint, Composite } = Matter;
+            const { Vector, Body } = Matter;
             
             // 获取点击/触摸位置
             let clientX, clientY;
@@ -1177,24 +1177,10 @@
             const dist = Vector.magnitude(Vector.sub(clickPos, currentBird.position));
             if (dist > 80) return;
             
-            // 释放 static 状态，创建弹弓约束
+            // 释放 static 状态
             Body.setStatic(currentBird, false);
-            
-            // 保存拖动偏移
-            dragOffset = Vector.sub(currentBird.position, clickPos);
-            
-            // 创建弹弓约束
-            slingConstraint = Constraint.create({
-                pointA: { x: currentBird.anchorX, y: currentBird.anchorY },
-                bodyB: currentBird,
-                stiffness: 0.05,
-                damping: 0.01,
-                length: 0,
-                render: { visible: false }
-            });
-            Composite.add(world, slingConstraint);
-            
             isDraggingBird = true;
+            isDragStarted = false;
             hideHint();
         }
 
@@ -1226,34 +1212,53 @@
                 y: (clientY - rect.top) * scaleY
             };
             
-            // 限制拖动范围
+            // 锚点位置
             const anchor = { x: currentBird.anchorX, y: currentBird.anchorY };
-            let newPos = Vector.add(mousePos, dragOffset);
-            const pullVector = Vector.sub(anchor, newPos);
-            const pullDist = Vector.magnitude(pullVector);
             
+            // 计算拖动向量（反向：往后拉才能往前射）
+            let pullVector = Vector.sub(anchor, mousePos);
+            let pullDist = Vector.magnitude(pullVector);
+            
+            // 限制最大拖动距离
             if (pullDist > CONFIG.maxPullDistance) {
-                const normalized = Vector.normalise(pullVector);
-                newPos = Vector.sub(anchor, Vector.mult(normalized, CONFIG.maxPullDistance));
+                pullVector = Vector.mult(Vector.normalise(pullVector), CONFIG.maxPullDistance);
+                pullDist = CONFIG.maxPullDistance;
             }
             
+            // 设置小鸟位置（向后拉）
+            const newPos = Vector.sub(anchor, pullVector);
             Body.setPosition(currentBird, newPos);
             Body.setVelocity(currentBird, { x: 0, y: 0 });
+            Body.setAngularVelocity(currentBird, 0);
+            
+            isDragStarted = true;
         }
 
         function handleMouseUp(e) {
             e.preventDefault();
             e.stopPropagation();
             
+            if (!currentBird) return;
+            
+            const { Composite, Vector, Body } = Matter;
+            
             // 处理飞行中小鸟的特殊能力激活
-            if (currentBird && isBirdFlying && canActivateAbility && currentBird.canActivate) {
+            if (isBirdFlying && canActivateAbility && currentBird.canActivate) {
                 activateBirdAbility();
                 return;
             }
             
-            if (!currentBird || !isDraggingBird || !slingConstraint) return;
+            if (!isDraggingBird || !isDragStarted) {
+                // 如果没有开始拖动，重置位置
+                Body.setPosition(currentBird, { 
+                    x: currentBird.anchorX, 
+                    y: currentBird.anchorY 
+                });
+                Body.setStatic(currentBird, true);
+                isDraggingBird = false;
+                return;
+            }
             
-            const { Composite, Vector, Body } = Matter;
             isDraggingBird = false;
 
             // 计算发射向量
@@ -1261,19 +1266,13 @@
             const pullVector = Vector.sub(anchor, currentBird.position);
             const pullDistance = Vector.magnitude(pullVector);
 
-            if (pullDistance < 20) {
-                // 拉距不够，重置小鸟位置
+            if (pullDistance < 15) {
+                // 拉距不够，重置
                 Body.setPosition(currentBird, anchor);
                 Body.setVelocity(currentBird, { x: 0, y: 0 });
                 Body.setStatic(currentBird, true);
-                Composite.remove(world, slingConstraint);
-                slingConstraint = null;
                 return;
             }
-
-            // 移除弹弓约束
-            Composite.remove(world, slingConstraint);
-            slingConstraint = null;
 
             // 应用发射力
             const clampedDistance = Math.min(pullDistance, CONFIG.maxPullDistance);
