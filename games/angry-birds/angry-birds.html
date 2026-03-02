@@ -737,23 +737,21 @@
                 }
             });
 
-            // 创建鼠标控制 - 允许拖动 static 物体
+            // 创建鼠标控制
             const mouse = Mouse.create(canvas);
             mouseConstraint = MouseConstraint.create(engine, {
                 mouse: mouse,
                 constraint: {
                     stiffness: 0.2,
                     render: { visible: false }
-                },
-                // 允许拖动 static 物体
-                collisionFilter: {
-                    mask: 0xffffffff
                 }
             });
             
-            // 强制 MouseConstraint 可以拖动任何物体
-            mouseConstraint.bodyDrag = null;
-            mouseConstraint.constraint.stiffness = 0.2;
+            // 让 MouseConstraint 可以拖动 static 物体
+            mouseConstraint.constraint.bodyB = null;
+            
+            // 禁用鼠标约束的碰撞过滤，让它可以抓取任何物体
+            mouseConstraint.collisionFilter = { mask: 0xffffffff };
 
             // 将鼠标约束添加到世界中（关键步骤！）
             Composite.add(world, mouseConstraint);
@@ -826,16 +824,18 @@
             // 使用 Matter.js MouseConstraint 事件处理弹弓
             Events.on(mouseConstraint, 'startdrag', function(event) {
                 if (currentBird && !isBirdFlying && event.body === currentBird) {
-                    // 开始拖动小鸟 - 保持 static 并创建弹弓约束
                     const { Body, Constraint, Composite } = Matter;
                     
-                    // 创建弹弓约束
+                    // 关键：释放 static 状态，让 MouseConstraint 可以拖动
+                    Body.setStatic(currentBird, false);
+                    
+                    // 同时创建弹弓约束
                     if (!slingConstraint) {
                         slingConstraint = Constraint.create({
                             pointA: { x: currentBird.anchorX, y: currentBird.anchorY },
                             bodyB: currentBird,
-                            stiffness: 0.05,
-                            damping: 0.02,
+                            stiffness: 0.02,
+                            damping: 0.01,
                             length: 0,
                             render: { visible: false }
                         });
@@ -867,6 +867,7 @@
                     // 拉距不够，重置
                     if (pullDistance < 20) {
                         Body.setPosition(currentBird, anchor);
+                        Body.setStatic(currentBird, true);
                         return;
                     }
                     
