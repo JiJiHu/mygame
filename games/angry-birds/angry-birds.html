@@ -530,11 +530,15 @@
             });
             render.mouse = mouse;
 
-            // 监听拖动结束事件 (参考 emjose/slingshot)
+            // 监听拖动结束事件 - 释放小鸟时移除约束，让它飞向目标
             let lastFiringCheck = 0;
             
             Events.on(mouseConstraint, 'enddrag', function(e) {
-                if (e.body === currentBird) {
+                if (e.body === currentBird && slingConstraint) {
+                    // 移除弹弓约束，让小鸟自由飞行
+                    World.remove(world, slingConstraint);
+                    slingConstraint = null;
+                    
                     firingMode = true;
                     lastFiringCheck = Date.now();
                 }
