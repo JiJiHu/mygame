@@ -770,7 +770,8 @@
                 return;
             }
 
-            const birdColor = BIRD_COLORS[birdsQueue.shift()];
+            const birdType = birdsQueue.shift();
+            const birdColor = BIRD_COLORS[birdType];
             
             // 创建小鸟
             currentBird = Bodies.circle(
@@ -784,6 +785,8 @@
                     density: 0.004
                 }
             );
+            // 保存小鸟类型用于UI显示
+            currentBird.birdType = birdType;
             World.add(world, currentBird);
 
             // 创建弹弓约束 (参考 emjose/slingshot 的方式)
@@ -826,6 +829,13 @@
             document.getElementById('scoreValue').textContent = score;
             
             let html = '';
+            
+            // 当前使用中的小鸟
+            if (currentBird && currentBird.birdType) {
+                html += `<div class="bird-icon" style="background: ${BIRD_COLORS[currentBird.birdType]}"></div>`;
+            }
+            
+            // 剩余待用小鸟
             for (let i = 0; i < birdsQueue.length; i++) {
                 html += `<div class="bird-icon" style="background: ${BIRD_COLORS[birdsQueue[i]]}"></div>`;
             }
