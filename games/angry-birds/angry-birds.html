@@ -1135,13 +1135,15 @@
         let isMousePressed = false;
         
         function handleMouseDown(e) {
+            e.preventDefault();
+            e.stopPropagation();
             isMousePressed = true;
             
             if (!currentBird || isBirdFlying) return;
             
             const { Vector, Body, Constraint, Composite } = Matter;
             
-            // 获取点击位置（支持鼠标和触摸）
+            // 获取点击/触摸位置
             let clientX, clientY;
             if (e.touches && e.touches.length > 0) {
                 clientX = e.touches[0].clientX;
@@ -1154,36 +1156,44 @@
                 clientY = e.clientY;
             }
             
-            // 计算实际的鼠标/触摸位置
+            // 计算画布内的坐标
+            const canvas = document.getElementById('gameCanvas');
             const rect = canvas.getBoundingClientRect();
-            const scaleX = CONFIG.canvasWidth / rect.width;
-            const scaleY = CONFIG.canvasHeight / rect.height;
+            
+            // 考虑canvas被CSS缩放的情况
+            const displayWidth = canvas.style.width || rect.width + 'px';
+            const displayHeight = canvas.style.height || rect.height + 'px';
+            
+            const scaleX = CONFIG.canvasWidth / parseFloat(displayWidth);
+            const scaleY = CONFIG.canvasHeight / parseFloat(displayHeight);
+            
             const clickPos = {
                 x: (clientX - rect.left) * scaleX,
                 y: (clientY - rect.top) * scaleY
             };
             
-            // 检查是否点击在小鸟附近
+            // 简化检查：只要点击位置在小鸟附近就可以开始拖动
             const dist = Vector.magnitude(Vector.sub(clickPos, currentBird.position));
-            if (dist > currentBird.birdData.radius + 20) return;
+            console.log('点击距离:', dist, '小鸟位置:', currentBird.position);
             
-            // 如果小鸟在弹弓位置附近（允许拖动）
-            const distToSlingshot = Vector.magnitude(Vector.sub(currentBird.position, { x: CONFIG.slingshotX, y: CONFIG.slingshotY }));
-            if (distToSlingshot > CONFIG.maxPullDistance * 2.5) return;
+            if (dist > 80) return; // 放宽检测范围
             
-            // 先移除强保持约束（stiffness:1 太强，阻止拖动）
-            if (currentBird.holdingConstraint) { Composite.remove(world, currentBird.holdingConstraint); currentBird.holdingConstraint = null; }
+            // 移除保持约束
+            if (currentBird.holdingConstraint) {
+                Composite.remove(world, currentBird.holdingConstraint);
+                currentBird.holdingConstraint = null;
+            }
             
             // 开始拖动
             isDraggingBird = true;
             
-            // 创建弹弓约束（如果没有）
+            // 创建弹弓约束
             if (!slingConstraint) {
                 slingConstraint = Constraint.create({
                     pointA: { x: CONFIG.slingshotX, y: CONFIG.slingshotY },
                     bodyB: currentBird,
-                    stiffness: 0.05,
-                    damping: 0.01,
+                    stiffness: 0.1,
+                    damping: 0.02,
                     length: 0,
                     render: { visible: false }
                 });
@@ -1192,26 +1202,12 @@
         }
 
         function handleMouseMove(e) {
-            // 处理鼠标移动
-            if (!e.touches) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = CONFIG.canvasWidth / rect.width;
-                const scaleY = CONFIG.canvasHeight / rect.height;
-                mousePos.x = (e.clientX - rect.left) * scaleX;
-                mousePos.y = (e.clientY - rect.top) * scaleY;
-            }
-            // 处理触摸移动
-            if (e.touches) {
-                const touch = e.touches[0];
-                const rect = document.getElementById('gameCanvas').getBoundingClientRect();
-                const scaleX = CONFIG.canvasWidth / rect.width;
-                const scaleY = CONFIG.canvasHeight / rect.height;
-                mousePos.x = (touch.clientX - rect.left) * scaleX;
-                mousePos.y = (touch.clientY - rect.top) * scaleY;
-            }
+            e.preventDefault();
         }
 
         function handleMouseUp(e) {
+            e.preventDefault();
+            e.stopPropagation();
             isMousePressed = false;
             
             // 处理飞行中小鸟的特殊能力激活
@@ -1229,7 +1225,7 @@
             const pullVector = Vector.sub({ x: CONFIG.slingshotX, y: CONFIG.slingshotY }, currentBird.position);
             const pullDistance = Vector.magnitude(pullVector);
 
-            if (pullDistance < 25) {
+            if (pullDistance < 20) {
                 // 拉距不够，重置小鸟位置
                 Body.setPosition(currentBird, { x: CONFIG.slingshotX, y: CONFIG.slingshotY });
                 Body.setVelocity(currentBird, { x: 0, y: 0 });
