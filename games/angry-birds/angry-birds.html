@@ -502,7 +502,7 @@
         let slingConstraint = null;
         let pigs = [];
         let blocks = [];
-        let isFiring = false;
+        let firingMode = false;
         let levelStars = [0, 0];
 
         // ========== 初始化 ==========
@@ -531,7 +531,6 @@
             render.mouse = mouse;
 
             // 监听拖动结束事件 (参考 emjose/slingshot)
-            let firingMode = false;
             let lastFiringCheck = 0;
             
             Events.on(mouseConstraint, 'enddrag', function(e) {
@@ -543,7 +542,20 @@
 
             // 检查小鸟状态 (参考 emjose/slingshot)
             Events.on(engine, 'afterUpdate', function() {
-                if (!currentBird || !firingMode) return;
+                if (!currentBird) return;
+                
+                // 检测小鸟飞出边界
+                if (currentBird.position.y > CONFIG.canvasHeight + 100 ||
+                    currentBird.position.x < -100 ||
+                    currentBird.position.x > CONFIG.canvasWidth + 100) {
+                    // 小鸟飞出屏幕，加载下一只
+                    if (firingMode) {
+                        loadNextBird();
+                    }
+                    return;
+                }
+                
+                if (!firingMode) return;
                 
                 // 至少等待1秒后再检测，让小鸟有时间飞出去攻击
                 if (Date.now() - lastFiringCheck < 1000) return;
@@ -555,7 +567,6 @@
                 // 小鸟已经静止或非常慢
                 if (speed < 0.5) {
                     loadNextBird();
-                    firingMode = false;
                 }
             });
 
@@ -746,6 +757,9 @@
             // 移除旧的小鸟和约束
             if (currentBird) World.remove(world, currentBird);
             if (slingConstraint) World.remove(world, slingConstraint);
+            
+            // 重置发射状态
+            firingMode = false;
 
             if (birdsQueue.length === 0) {
                 setTimeout(() => checkGameEnd(), 2000);
