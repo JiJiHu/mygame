@@ -28,6 +28,33 @@
 	<body>
 		<div class="pleasewait" id="loading"><div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>
 		<div id="content" oncontextmenu="return false;"></div>
+		<button id="backHomeBtn" onclick="goBackHome()" title="返回主页">← 返回</button>
 		<script src="AngryBirdsGame.js"></script>
+		<style>
+			#backHomeBtn {
+				position: fixed;
+				top: 10px;
+				left: 10px;
+				z-index: 9999;
+				padding: 10px 20px;
+				background: rgba(0, 0, 0, 0.7);
+				color: #fff;
+				border: 2px solid #d4af37;
+				border-radius: 8px;
+				font-size: 16px;
+				cursor: pointer;
+				transition: all 0.3s;
+				font-family: Arial, sans-serif;
+			}
+			#backHomeBtn:hover {
+				background: rgba(212, 175, 55, 0.9);
+				color: #000;
+			}
+		</style>
+		<script>
+			function goBackHome() {
+				window.location.href = '../../index.html';
+			}
+		</script>
 	</body>
 </html>
