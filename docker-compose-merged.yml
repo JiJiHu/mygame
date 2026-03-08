@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mygame:
+    build: .
+    container_name: mygame
+    ports:
+      - "11278:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html
+      - ./games:/usr/share/nginx/html/games
+      - ./nginx-finance.conf:/etc/nginx/conf.d/finance.conf
+      - ./onepage-home.css:/usr/share/nginx/html/onepage-home.css
+      - ./manifest.json:/usr/share/nginx/html/manifest.json
+      - ./images:/usr/share/nginx/html/images
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  finance-db:
+    image: pgvector/pgvector:pg16
+    container_name: finance-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: finance_insight
+      POSTGRES_USER: jack
+      POSTGRES_PASSWORD: ChangeMe123!
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  finance-backend:
+    build:
+      context: ../finance-dashboard/backend
+      dockerfile: Dockerfile.fixed
+    container_name: finance-backend
+    expose:
+      - "8000"
+    environment:
+      DATABASE_URL: postgresql://jack:ChangeMe123!@finance-db:5432/finance_insight
+    depends_on:
+      - finance-db
+    restart: unless-stopped
+
+  finance-redis:
+    image: redis:7-alpine
+    container_name: finance-redis
+    expose:
+      - "6379"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

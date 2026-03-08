@@ -1,11 +1,11 @@
 # Use nginx:alpine for lightweight static file serving
 FROM nginx:alpine
 
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
+# Remove default nginx config and any other configs
+RUN rm -f /etc/nginx/conf.d/*.conf
 
 # Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy root static files to nginx html directory
 COPY index.html onepage-home.css onepiece-theme.css /usr/share/nginx/html/
