@@ -1328,14 +1328,16 @@
                 if (this.history.length === 0 || this.isAnimating) return;
                 
                 const state = this.history.pop();
-                this.board = state.board;
+                this.board = state.board.map(row => [...row]);
                 this.score = state.score;
-                this.nextBalls = state.nextBalls;
+                this.nextBalls = [...state.nextBalls];
                 this.selectedCell = null;
+                this.isAnimating = false;
+                this.gameActive = true;
                 
                 this.updateScore();
                 this.renderBoard();
-                this.renderNextBalls();
+                this.updatePreview();
                 this.updateUndoButton();
             }
 
