@@ -944,7 +944,7 @@
             const heartsContainer = document.getElementById('livesDisplay');
             heartsContainer.innerHTML = '';
             const maxVisibleHearts = 25;
-            const fullHearts = Math.min(lives, maxHearts);
+            const fullHearts = Math.min(lives, maxVisibleHearts);
             for (let i = 0; i < maxVisibleHearts; i++) {
                 const heart = document.createElement('span');
                 heart.className = 'heart' + (i >= lives ? ' lost' : '');
