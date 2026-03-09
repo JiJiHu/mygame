@@ -435,7 +435,7 @@ AngryBirds.Disclaimer.prototype = {
 			{
 			var name = "angrybirds" + settingName;
 			var nameEQ = name + "=";
-			var ca = document.cookie.split(";");
+			var level = localStorage.getItem("solvedlevelsangrybirds"); return level || "0"; } catch(err) { } return "0";
 
 			for(var i=0;i < ca.length;i++)
 				{
@@ -505,7 +505,7 @@ AngryBirds.SplashGame.prototype = {
 			{
 			var name = "angrybirds" + settingName;
 			var nameEQ = name + "=";
-			var ca = document.cookie.split(";");
+			var level = localStorage.getItem("solvedlevelsangrybirds"); return level || "0"; } catch(err) { } return "0";
 
 			for(var i=0;i < ca.length;i++)
 				{
@@ -548,7 +548,7 @@ AngryBirds.SplashGame.prototype = {
 				date.setTime(date.getTime() + (days*24*60*60*1000));
 				expires = "; expires=" + date.toUTCString() + "; SameSite=Lax";
 				}
-			document.cookie = name + "=" + (value || "")  + expires + "; Secure; path=/";
+localStorage.setItem("solvedlevelsangrybirds", newLevel);
 			}
 			catch(err)
 			{
@@ -561,7 +561,7 @@ AngryBirds.SplashGame.prototype = {
 			{
 			var name = "solvedlevelsangrybirds";
 			var nameEQ = name + "=";
-			var ca = document.cookie.split(";");
+			var level = localStorage.getItem("solvedlevelsangrybirds"); return level || "0"; } catch(err) { } return "0";
 
 			for(var i=0;i < ca.length;i++)
 				{
@@ -678,7 +678,7 @@ AngryBirds.Menu.prototype = {
 			{
 			var name = "angrybirds" + settingName;
 			var nameEQ = name + "=";
-			var ca = document.cookie.split(";");
+			var level = localStorage.getItem("solvedlevelsangrybirds"); return level || "0"; } catch(err) { } return "0";
 
 			for(var i=0;i < ca.length;i++)
 				{
@@ -721,7 +721,7 @@ AngryBirds.Menu.prototype = {
 				date.setTime(date.getTime() + (days*24*60*60*1000));
 				expires = "; expires=" + date.toUTCString() + "; SameSite=Lax";
 				}
-			document.cookie = name + "=" + (value || "")  + expires + "; Secure; path=/";
+localStorage.setItem("solvedlevelsangrybirds", newLevel);
 			}
 			catch(err)
 			{
@@ -2062,7 +2062,7 @@ AngryBirds.Game.prototype = {
 				date.setTime(date.getTime() + (days*24*60*60*1000));
 				expires = "; expires=" + date.toUTCString() + "; SameSite=Lax";
 				}
-			document.cookie = name + "=" + (value || "")  + expires + "; Secure; path=/";
+localStorage.setItem("solvedlevelsangrybirds", newLevel);
 			}
 			catch(err)
 			{
