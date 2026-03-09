@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>航海日志 - 系统监控</title>
+    <title>系统监控</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -343,30 +343,30 @@
     <nav class="navbar">
         <div class="nav-content">
             <a href="./" class="logo">
-                <span>📜</span>
-                <span>航海日志</span>
+                <span>📊</span>
+                <span>系统监控</span>
             </a>
             <div class="nav-links">
                 <a href="../">← 返回主页</a>
-                <a href="admin.html">藏宝图</a>
+                <a href="admin.html">数据管理</a>
             </div>
         </div>
     </nav>
 
     <!-- 主容器 -->
     <div class="container">
-        <div class="compass">🧭</div>
-        <h1>航船状态监控</h1>
-        <p class="subtitle">实时监控航船运行状态</p>
+        <div class="compass">🔧</div>
+        <h1>系统状态监控</h1>
+        <p class="subtitle">实时监控服务器运行状态</p>
 
         <div id="status-content" class="loading">
-            <p>⏳ 加载航海日志...</p>
+            <p>⏳ 加载系统状态...</p>
         </div>
 
         <div class="actions" id="action-buttons" style="display: none;">
-            <button class="btn btn-primary" onclick="refreshStatus()">🔄 刷新日志</button>
-            <button class="btn btn-warning" onclick="checkHealth()">🏥 船体检查</button>
-            <button class="btn btn-primary" onclick="backupNow()">💾 备份宝藏</button>
+            <button class="btn btn-primary" onclick="refreshStatus()">🔄 刷新状态</button>
+            <button class="btn btn-warning" onclick="checkHealth()">🏥 健康检查</button>
+            <button class="btn btn-primary" onclick="backupNow()">💾 数据备份</button>
         </div>
 
         <p class="last-updated" id="lastUpdated">最后更新: --</p>
@@ -410,55 +410,55 @@
                 content.innerHTML = `
                     <div class="grid">
                         <div class="card">
-                            <h2>🚢 航船状态</h2>
+                            <h2>🖥️ 服务器状态</h2>
                             <div class="status-item">
-                                <span class="status-label">航行状态</span>
+                                <span class="status-label">运行状态</span>
                                 <span class="status-value ${status.server.status === 'running' ? 'success' : 'error'}">
-                                    ${status.server.status === 'running' ? '✅ 航行中' : '❌ 已停泊'}
+                                    ${status.server.status === 'running' ? '✅ 运行中' : '❌ 已停止'}
                                 </span>
                             </div>
                             <div class="status-item">
-                                <span class="status-label">航行时长</span>
+                                <span class="status-label">运行时长</span>
                                 <span class="status-value">${status.server.uptime}</span>
                             </div>
                             <div class="status-item">
-                                <span class="status-label">港口位置</span>
+                                <span class="status-label">服务端口</span>
                                 <span class="status-value">8080</span>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h2>📡 指南针状态</h2>
+                            <h2>📡 API状态</h2>
                             <div class="status-item">
-                                <span class="status-label">导航检查</span>
+                                <span class="status-label">API检查</span>
                                 <span class="status-value ${status.api.status === 'ok' ? 'success' : 'error'}">
-                                    ${status.api.status === 'ok' ? '✅ 指向正确' : '❌ 导航异常'}
+                                    ${status.api.status === 'ok' ? '✅ 正常' : '❌ 异常'}
                                 </span>
                             </div>
                             <div class="status-item">
-                                <span class="status-label">最后核对</span>
+                                <span class="status-label">最后检查</span>
                                 <span class="status-value">${status.api.lastCheck}</span>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h2>💎 宝藏库</h2>
+                            <h2>💎 数据文件</h2>
                             <div class="status-item">
-                                <span class="status-label">宝库状态</span>
+                                <span class="status-label">文件状态</span>
                                 <span class="status-value ${status.data.fileExists ? 'success' : 'error'}">
-                                    ${status.data.fileExists ? '✅ 正常' : '❌ 走失'}
+                                    ${status.data.fileExists ? '✅ 正常' : '❌ 丢失'}
                                 </span>
                             </div>
                             <div class="status-item">
-                                <span class="status-label">宝库大小</span>
+                                <span class="status-label">文件大小</span>
                                 <span class="status-value">${status.data.size}</span>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h2>💽 物资储备</h2>
+                            <h2>💽 磁盘空间</h2>
                             <div class="status-item">
-                                <span class="status-label">船只负载</span>
+                                <span class="status-label">磁盘使用</span>
                                 <span class="status-value ${status.disk.usage > 90 ? 'error' : status.disk.usage > 80 ? 'warning' : 'success'}">
                                     ${status.disk.usage}%
                                 </span>
@@ -470,25 +470,25 @@
                         </div>
 
                         <div class="card">
-                            <h2>🌊 海况信息</h2>
+                            <h2>🌊 系统资源</h2>
                             <div class="status-item">
-                                <span class="status-label">海浪状况</span>
-                                <span class="status-value">平静</span>
+                                <span class="status-label">系统负载</span>
+                                <span class="status-value">正常</span>
                             </div>
                             <div class="status-item">
-                                <span class="status-label">船员负荷</span>
+                                <span class="status-label">CPU使用</span>
                                 <span class="status-value">47%</span>
                             </div>
                         </div>
 
                         <div class="card">
-                            <h2>📈 航行统计</h2>
+                            <h2>📈 访问统计</h2>
                             <div class="status-item">
-                                <span class="status-label">今日靠岸</span>
+                                <span class="status-label">今日访问</span>
                                 <span class="status-value">156</span>
                             </div>
                             <div class="status-item">
-                                <span class="status-label">信号发送</span>
+                                <span class="status-label">API请求</span>
                                 <span class="status-value">68</span>
                             </div>
                         </div>
@@ -503,7 +503,7 @@
                     <div class="card">
                         <h2 style="color: #ff4444;">❌ 日志读取失败</h2>
                         <p style="color: var(--ocean-dark); margin-top: 1rem; font-size: 0.95rem;">
-                            无法获取船体状态信息。<br>
+                            无法获取系统状态信息。<br>
                             错误: ${error.message}
                         </p>
                     </div>
@@ -517,13 +517,13 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('✅ 船体检查通过！航船状态良好，可以继续航行。');
+                    alert('✅ 健康检查通过！系统运行正常。');
                 } else {
-                    alert('❌ 船体检查失败！需要停泊检修。');
+                    alert('❌ 健康检查失败！需要检查系统。');
                 }
                 refreshStatus();
             } catch (error) {
-                alert('❌ 船体检查失败！错误: ' + error.message);
+                alert('❌ 健康检查失败！错误: ' + error.message);
                 refreshStatus();
             }
         }
@@ -533,7 +533,7 @@
                 return;
             }
 
-            alert('💾 提示：宝藏备份需要在船员室运行脚本。\n\n请手动执行：\n/bin/bash /root/mygame/scripts/backup.sh\n\n或等待每日自动备份任务。');
+            alert('💾 提示：数据备份需要手动执行脚本。\n\n请手动执行：\n/bin/bash /root/mygame/scripts/backup.sh\n\n或等待每日自动备份任务。');
         }
 
         function refreshStatus() {

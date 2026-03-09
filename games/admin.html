@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>藏宝图 - 排行榜管理</title>
+    <title>游戏数据 - 排行榜管理</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -338,31 +338,31 @@
     <nav class="navbar">
         <div class="nav-content">
             <a href="./" class="logo">
-                <span>🗺️</span>
-                <span>藏宝图</span>
+                <span>📊</span>
+                <span>数据管理</span>
             </a>
             <div class="nav-links">
                 <a href="../">← 返回主页</a>
-                <a href="ops.html">航海日志</a>
+                <a href="ops.html">系统监控</a>
             </div>
         </div>
     </nav>
 
     <!-- 主容器 -->
     <div class="container">
-        <h1>🏴‍☠️ 排行榜管理 🏴‍☠️</h1>
+        <h1>📊 排行榜管理</h1>
 
         <!-- 统计信息 -->
         <div class="card">
-            <div class="treasure">💰</div>
-            <h2>📊 宝库统计</h2>
+            <div class="treasure">📈</div>
+            <h2>📊 数据统计</h2>
             <div class="stats" id="stats">
                 <div class="stat-item">
-                    <div class="label">🐍 海蛇记录</div>
+                    <div class="label">🐍 贪吃蛇记录</div>
                     <div class="value" id="snake-count">—</div>
                 </div>
                 <div class="stat-item">
-                    <div class="label">🔢 宝藏记录</div>
+                    <div class="label">🔢 数独记录</div>
                     <div class="value" id="sudoku-count">—</div>
                 </div>
             </div>
@@ -374,26 +374,26 @@
 
         <!-- 清空本地数据 -->
         <div class="card">
-            <h2>🧹 清理船只日志</h2>
+            <h2>🧹 清理本地数据</h2>
             <p style="color: var(--ocean-dark); font-size: 0.95rem; margin-bottom: 1.5rem;">
-                清除本地船只记录日志（不影响总部宝藏库）
+                清除浏览器本地存储的排行榜数据（不影响服务器数据）
             </p>
             <button class="btn btn-warning btn-full" onclick="clearLocalStorage()">
                 <span>🧹</span>
-                <span>清理日志</span>
+                <span>清理本地</span>
             </button>
             <div class="status" id="localStatus"></div>
         </div>
 
         <!-- 清空服务器数据 -->
         <div class="card">
-            <h2>⚠️ 清空宝藏库</h2>
+            <h2>⚠️ 清空服务器数据</h2>
             <p style="color: var(--ocean-dark); font-size: 0.95rem; margin-bottom: 1.5rem;">
-                清空总部所有宝藏记录（慎重操作！）
+                清空服务器所有排行榜记录（慎重操作！）
             </p>
             <button class="btn btn-danger btn-full" onclick="clearServerLeaderboard()">
                 <span>💥</span>
-                <span>清空宝藏库</span>
+                <span>清空服务器</span>
             </button>
             <div class="status" id="serverStatus"></div>
         </div>
