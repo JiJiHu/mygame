@@ -661,7 +661,7 @@
         <div class="button-group">
             <a href="../../index.html" class="btn home-btn">🏠 返回主页</a>
             <button class="btn" id="newGameBtn">新游戏</button>
-            <button class="btn" id="undoBtn" style="display: none;">撤回</button>
+            <button class="btn" id="undoBtn">撤回</button>
             <button class="btn" id="leaderboardBtn">排行榜</button>
         </div>
     </div>
@@ -819,7 +819,7 @@
                         cell.dataset.col = col;
                         
                         if (this.board[row][col]) {
-                            const ball = this.createElement('div', 'ball ' + this.board[row][col]);
+                            const ball = createElement('div', 'ball ' + this.board[row][col]);
                             cell.appendChild(ball);
                         }
                         
@@ -891,6 +891,8 @@
                 const path = this.findPath(fromRow, fromCol, toRow, toCol);
                 
                 if (path) {
+                    // 在移动前保存状态，这样才能撤回
+                    this.saveState();
                     this.animateMove(fromRow, fromCol, toRow, toCol, path);
                 } else {
                     this.showMessage('无法到达该位置!');
@@ -980,9 +982,6 @@
                 
                 // 检查游戏结束
                 this.checkGameOver();
-                
-                // 保存历史状态
-                this.saveState();
             }
 
             async checkAndRemoveLines(row, col) {
@@ -1344,7 +1343,8 @@
             updateUndoButton() {
                 const undoBtn = document.getElementById('undoBtn');
                 if (undoBtn) {
-                    undoBtn.style.display = this.history.length > 0 ? 'inline-block' : 'none';
+                    undoBtn.disabled = this.history.length === 0;
+                    undoBtn.style.opacity = this.history.length > 0 ? '1' : '0.5';
                 }
             }
             delay(ms) {

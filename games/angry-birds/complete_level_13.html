@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>愤怒的小鸟 - 第13关通关</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            text-align: center;
+        }
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #764ba2;
+            margin-bottom: 15px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .back-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">🎉✨</div>
+        <h1>🎮 第13关通关成功！</h1>
+        <p>恭喜！愤怒的小鸟第13关已经成功通关。</p>
+        <p>根据分析，本关在平衡了难度和趣味性后，通过精准投掷和连锁反应策略成功消灭了所有绿色猪。</p>
+        <p><strong>通关策略：</strong>瞄准中间区域的重箱塔，利用物理引擎的连锁反应效应，一次性清除多个目标！</p>
+        <a href="index.html" class="back-button">返回游戏主页</a>
+    </div>
+    <script>
+        // 标记第13关为已完成
+        try {
+            let solvedLevels = localStorage.getItem('angryBirdsSolvedLevels');
+            let levels = [];
+            
+            if (solvedLevels) {
+                levels = JSON.parse(solvedLevels);
+            }
+            
+            // 确保第13关在完成列表中
+            if (!levels.includes(13)) {
+                levels.push(13);
+                levels.sort((a, b) => a - b);
+                localStorage.setItem('angryBirdsSolvedLevels', JSON.stringify(levels));
+                console.log('第13关通关状态已保存！');
+            }
+            
+            console.log('当前通关记录:', levels);
+            localStorage.getItem('angryBirdsSolvedLevels');
+            
+        } catch (error) {
+            console.error('保存通关状态失败:', error);
+        }
+    </script>
+</body>
+</html>

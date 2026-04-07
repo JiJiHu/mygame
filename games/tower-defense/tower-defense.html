@@ -1766,7 +1766,7 @@
             
             gameState = 'playing';
             gold = diff.initialGold;
-            lives = 20;
+            lives = 10;
             wave = 1;
             enemiesKilled = 0;
             
@@ -1820,11 +1820,10 @@
             
             const heartsContainer = document.getElementById('livesDisplay');
             heartsContainer.innerHTML = '';
-            const maxHearts = 10;
-            const fullHearts = Math.min(lives, maxHearts);
-            for (let i = 0; i < maxHearts; i++) {
+            // 显示所有红心
+            for (let i = 0; i < lives; i++) {
                 const heart = document.createElement('span');
-                heart.className = 'heart' + (i >= lives ? ' lost' : '');
+                heart.className = 'heart';
                 heart.textContent = '❤';
                 heartsContainer.appendChild(heart);
             }

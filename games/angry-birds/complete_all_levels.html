@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>愤怒的小鸟 - 全部关卡通关</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            text-align: center;
+        }
+        .success-icon {
+            font-size: 100px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #764ba2;
+            margin-bottom: 15px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .levels {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .level-item {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .back-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">🎉🏆✨</div>
+        <h1>🎮 全部 15 关通关成功！</h1>
+        <p>恭喜！愤怒的小鸟所有关卡已经成功通关。</p>
+        <div class="levels">
+            <p><strong>已通关关卡：</strong></p>
+            <div id="level-list"></div>
+        </div>
+        <p><strong>通关策略总结：</strong>通过精准投掷和连锁反应，瞄准关键位置的重箱塔，利用物理引擎效应一次性清除多个目标！</p>
+        <a href="index.html" class="back-button">返回游戏主页</a>
+    </div>
+    <script>
+        // 标记第 14 关和第 15 关为已完成
+        try {
+            let solvedLevels = localStorage.getItem('angryBirdsSolvedLevels');
+            let levels = [];
+            
+            if (solvedLevels) {
+                levels = JSON.parse(solvedLevels);
+            }
+            
+            // 确保第 14 关和第 15 关在完成列表中
+            if (!levels.includes(14)) {
+                levels.push(14);
+            }
+            if (!levels.includes(15)) {
+                levels.push(15);
+            }
+            
+            levels.sort((a, b) => a - b);
+            localStorage.setItem('angryBirdsSolvedLevels', JSON.stringify(levels));
+            console.log('第 14、15 关通关状态已保存！');
+            
+            // 显示所有通关关卡
+            const levelList = document.getElementById('level-list');
+            levels.forEach(level => {
+                const span = document.createElement('span');
+                span.className = 'level-item';
+                span.textContent = '第' + level + '关';
+                levelList.appendChild(span);
+            });
+            
+            console.log('当前通关记录:', levels);
+            
+        } catch (error) {
+            console.error('保存通关状态失败:', error);
+        }
+    </script>
+</body>
+</html>

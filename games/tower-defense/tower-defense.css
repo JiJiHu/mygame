@@ -697,3 +697,11 @@
             }
         }
     </style>
+
+/* 生命值数字显示 */
+.lives-num {
+    color: #ffd700;
+    font-size: 14px;
+    margin-left: 5px;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
