@@ -1,26 +1,16 @@
 <!DOCTYPE html>
+<!-- OpenCode was here -->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏴‍☠️ 海贼小游戏合集 - 高级版</title>
-    <link rel="stylesheet" href="onepiece-premium.css">
+    <title>🏴‍☠️ 海贼小游戏合集 v2.0</title>
+    <link rel="stylesheet" href="onepage-home.css">
     <link rel="manifest" href="manifest.json">
+    <style>
+    </style>
 </head>
 <body>
-    <!-- 粒子效果 -->
-    <div class="particle-container">
-        <div class="particle" style="left: 10%; animation-delay: 0s;">⚓</div>
-        <div class="particle" style="left: 20%; animation-delay: 2s;">💰</div>
-        <div class="particle" style="left: 30%; animation-delay: 4s;">🗺️</div>
-        <div class="particle" style="left: 40%; animation-delay: 1s;">🏴‍☠️</div>
-        <div class="particle" style="left: 50%; animation-delay: 3s;">⚔️</div>
-        <div class="particle" style="left: 60%; animation-delay: 5s;">🍖</div>
-        <div class="particle" style="left: 70%; animation-delay: 2s;">💎</div>
-        <div class="particle" style="left: 80%; animation-delay: 4s;">🏆</div>
-        <div class="particle" style="left: 90%; animation-delay: 1s;">🌟</div>
-    </div>
-
     <!-- 顶部标题栏 -->
     <header class="main-header">
         <div class="header-content">
@@ -33,6 +23,16 @@
         </div>
     </header>
 
+    <!-- 漂浮的宝藏元素 -->
+    <div class="treasure-element">⚓</div>
+    <div class="treasure-element">💰</div>
+    <div class="treasure-element">🗺️</div>
+
+    <!-- 罗盘装饰 -->
+    <div class="compass-decoration">
+        <div class="compass-needle"></div>
+    </div>
+
     <!-- 海浪层 -->
     <div class="ocean-waves">
         <div class="wave"></div>
@@ -40,15 +40,16 @@
         <div class="wave"></div>
     </div>
 
-    <!-- 游戏容器 -->
-    <div class="container">
-        <!-- 游戏列表标题 -->
-        <div id="games" class="games-section-title">
-            <h2>🎮 全部游戏</h2>
-        </div>
-        
-        <!-- 游戏卡片网格 -->
-        <div class="game-grid">
+    <!-- 海盗船 -->
+    <div class="pirate-ship-container">
+        <img src="images/pirate-ship.svg" alt="Pirate Ship">
+    </div>
+    
+    <!-- 游戏列表标题 -->
+    <div id="games" class="games-section-title">
+        <h2>🎮 全部游戏</h2>
+    </div>
+    
             <!-- 贪吃蛇游戏 -->
             <div class="game-card" onclick="location.href='games/snake/snake.html'">
                 <div class="corner-nail"></div>
@@ -93,8 +94,8 @@
                 <div class="game-card-icon">⚫⚪</div>
                 <h3 class="game-card-title">五子棋对决</h3>
                 <p class="game-card-desc">
-                    智慧的较量！支持 PVP 双人对战和 PVE 人机对战。
-                    三种 AI 难度等你挑战，看谁先连成五子！
+                    智慧的较量！支持PVP双人对战和PVE人机对战。
+                    三种AI难度等你挑战，看谁先连成五子！
                 </p>
 
                 <div class="game-card-stats">
@@ -104,7 +105,7 @@
                     </div>
                     <div class="game-stat">
                         <div class="game-stat-value">3</div>
-                        <div class="game-stat-label">AI 难度</div>
+                        <div class="game-stat-label">AI难度</div>
                     </div>
                     <div class="game-stat">
                         <div class="game-stat-value">∞</div>
@@ -257,7 +258,7 @@
                 <div class="game-card-icon">🎨</div>
                 <h3 class="game-card-title">五彩连珠</h3>
                 <p class="game-card-desc">
-                    智力闯关游戏！移动彩球，连成直线消除，获得高分。每轮出现 3 个新球，考验你的策略和空间想象力！
+                    智力闯关游戏！移动彩球，连成直线消除，获得高分。每轮出现3个新球，考验你的策略和空间想象力！
                 </p>
 
                 <div class="game-card-stats">
@@ -290,7 +291,7 @@
                 <div class="game-card-icon">🐦</div>
                 <h3 class="game-card-title">愤怒的小鸟</h3>
                 <p class="game-card-desc">
-                    经典物理弹射游戏！拖拽弹弓发射小鸟，消灭所有小猪。使用特殊能力小米、蓝色小鸟等，挑战 3 个精心设计的关卡！
+                    经典物理弹射游戏！拖拽弹弓发射小鸟，消灭所有小猪。使用特殊能力小米、蓝色小鸟等，挑战3个精心设计的关卡！
                 </p>
 
                 <div class="game-card-stats">
@@ -311,30 +312,133 @@
                 <a href="games/angry-birds/index.html" class="play-button">开始发射</a>
             </div>
         </div>
-    </div>
+        </div>
 
-    <!-- 底部区域 -->
-    <footer class="footer">
-        <p>© 2026 海贼王游戏世界 - All rights reserved | Made with ❤️ by Biko</p>
-    </footer>
+        <!-- 底部区域 -->
+        <div class="footer-section">
+            <h3 class="footer-title">📜 船长日志</h3>
+            <p class="footer-text">
+                所有游戏均采用海贼王主题设计，带给你沉浸式的冒险体验！<br>
+                支持键盘快捷键，操作流畅，响应迅速。<br>
+                享受游戏，挑战自我，成为真正的海贼王！
+            </p>
+
+            <!-- 管理入口图标 -->
+            <div class="admin-icons">
+                <a href="games/admin.html" class="admin-icon" title="排行榜管理">
+                    <span class="admin-icon-emoji">🏆</span>
+                    <span class="admin-icon-label">排行榜</span>
+                </a>
+                    <span class="admin-icon-emoji">📈</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
     <script>
         // 页面加载动画
         document.addEventListener('DOMContentLoaded', function() {
             const cards = document.querySelectorAll('.game-card');
             cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.2}s`;
                 card.style.opacity = '0';
-                card.style.transform = 'translateY(50px)';
+                card.style.transform = 'translateY(30px)';
 
                 setTimeout(() => {
-                    card.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    card.style.transition = 'all 0.6s ease-out';
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
-                }, 200 + index * 150);
+                }, 300 + index * 200);
             });
         });
 
-        // Service Worker 注册
+        // 随机宝藏位置
+        const treasures = document.querySelectorAll('.treasure-element');
+        treasures.forEach(treasure => {
+            setInterval(() => {
+                treasure.style.top = `${10 + Math.random() * 80}%`;
+                treasure.style.left = `${5 + Math.random() * 90}%`;
+            }, 15000);
+        });
+
+        // 鼠标视差效果
+        document.addEventListener('mousemove', (e) => {
+            const ship = document.querySelector('.pirate-ship-container');
+            const compass = document.querySelector('.compass-decoration');
+            const treasures = document.querySelectorAll('.treasure-element');
+
+            const x = e.clientX / window.innerWidth - 0.5;
+            const y = e.clientY / window.innerHeight - 0.5;
+
+            ship.style.transform = `translate(${x * 20}px, ${y * 10}px)`;
+            compass.style.transform = `translate(${x * -10}px, ${y * -10}px) rotate(${Date.now() / 30 % 360}deg)`;
+
+            treasures.forEach((t, i) => {
+                const factor = (i + 1) * 2;
+                t.style.transform = `translate(${x * factor * 5}px, ${y * factor * 3}px)`;
+            });
+        });
+
+        // 卡片点击波浪效果
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                ripple.style.position = 'absolute';
+                ripple.style.width = '20px';
+                ripple.style.height = '20px';
+                ripple.style.background = 'rgba(212, 175, 55, 0.5)';
+                ripple.style.borderRadius = '50%';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.animation = 'ripple 0.6s linear';
+                ripple.style.left = `${e.clientX - this.getBoundingClientRect().left - 10}px`;
+                ripple.style.top = `${e.clientY - this.getBoundingClientRect().top - 10}px`;
+                ripple.style.pointerEvents = 'none';
+
+                this.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // 添加波浪动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(50);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 14px;">
+        © 2026 MyGame - All rights reserved
+    </footer>
+    <div id="test-badge">Tested by OpenCode</div>
+    <script>
+        // Lazy loading for game cards
+        document.addEventListener("DOMContentLoaded", function() {
+            const lazyCards = document.querySelectorAll(".lazy-card");
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const card = entry.target;
+                        const onclick = card.dataset.onclick;
+                        if (onclick) {
+                            card.onclick = new Function(onclick);
+                            card.classList.remove("lazy-card");
+                            observer.unobserve(card);
+                        }
+                    }
+                });
+            }, { rootMargin: "50px" });
+            
+            lazyCards.forEach(card => observer.observe(card));
+        });
+    </script>
+    <script>
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("/sw.js");
         }
