@@ -15,9 +15,6 @@ COPY images/ /usr/share/nginx/html/images/
 # Copy games directory (contains all game HTML/CSS/JS files)
 COPY games/ /usr/share/nginx/html/games/
 
-# Add health check using 127.0.0.1 (IPv4) instead of localhost
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1/ || exit 1
 
 # Expose port 80
 EXPOSE 80
