@@ -117,6 +117,7 @@ export default async function handler(req) {
         const keys = await redisCommand('keys', ['leaderboard:*']);
         if (keys && keys.length > 0) {
           await redisCommand('del', keys);
+        }
         return new Response(JSON.stringify({ success: true, leaderboard: {} }), {
           status: 200,
           headers: { 
