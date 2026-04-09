@@ -1,4 +1,4 @@
-// 测试 Redis 连接 - 使用 Upstash Pipeline REST API
+// 测试 Redis 连接 - 使用 Upstash 单命令 REST API
 
 export const config = {
   runtime: 'edge',
@@ -20,28 +20,39 @@ export default async function handler() {
   }
 
   try {
-    // Upstash Pipeline REST API 格式
-    const body = [
-      ["PING"],
-      ["ZADD", "test:leaderboard", 100, JSON.stringify({name:'test',score:100})],
-      ["ZRANGE", "test:leaderboard", 0, -1]
-    ];
-
-    const res = await fetch(`${KV_REST_API_URL}/pipeline`, {
+    // 单命令格式：POST /command/arg1/arg2
+    const pingRes = await fetch(`${KV_REST_API_URL}/ping`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${KV_REST_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
+        'Authorization': `Bearer ${KV_REST_API_TOKEN}`
+      }
     });
+    const ping = await pingRes.text();
     
-    const result = await res.json();
+    // ZADD
+    const zaddRes = await fetch(`${KV_REST_API_URL}/zadd/test:leaderboard/100/${encodeURIComponent(JSON.stringify({name:'test',score:100}))}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${KV_REST_API_TOKEN}`
+      }
+    });
+    const zadd = await zaddRes.text();
+    
+    // ZRANGE
+    const zrangeRes = await fetch(`${KV_REST_API_URL}/zrange/test:leaderboard/0/-1`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${KV_REST_API_TOKEN}`
+      }
+    });
+    const zrange = await zrangeRes.text();
 
     return new Response(JSON.stringify({
-      success: res.ok,
-      result,
-      url: KV_REST_API_URL ? '***' : null
+      success: true,
+      ping,
+      zadd,
+      zrange,
+      baseUrl: KV_REST_API_URL
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
