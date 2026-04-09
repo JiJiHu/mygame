@@ -1,33 +1,21 @@
 // Vercel Serverless Function for Leaderboard
-// 使用 Upstash Redis REST API
+// 使用 @upstash/redis SDK
+
+import { Redis } from '@upstash/redis';
 
 export const config = {
   runtime: 'edge',
 };
 
-async function redisCommand(command, args = []) {
-  const KV_REST_API_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const KV_REST_API_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+function getRedisClient() {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   
-  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) {
-    console.error('Redis 未配置');
-    return null;
+  if (!url || !token) {
+    throw new Error('Redis 环境变量未配置');
   }
-
-  const response = await fetch(`${KV_REST_API_URL}/${command}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${KV_REST_API_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(args)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Redis 错误：${response.statusText}`);
-  }
-
-  return response.json();
+  
+  return new Redis({ url, token });
 }
 
 export default async function handler(req) {
@@ -48,25 +36,18 @@ export default async function handler(req) {
   }
 
   try {
+    const redis = getRedisClient();
+    
     if (req.method === 'GET') {
       // 获取排行榜
-      const result = await redisCommand('zrange', [`leaderboard:${game}`, '0', '49']);
-      console.log('ZRange result:', result);
-      if (!result || !Array.isArray(result)) {
-        return new Response(JSON.stringify({ success: true, leaderboard: [] }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-        });
-      }
-      const data = result.map(item => JSON.parse(item));
+      const leaderboard = await redis.zrange(`leaderboard:${game}`, 0, 49);
+      const data = leaderboard.map(item => JSON.parse(item));
       
       return new Response(JSON.stringify({ success: true, leaderboard: data }), {
         status: 200,
         headers: { 
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
+          'Access-Control-Allow-Origin': '*'
         }
       });
     } else if (req.method === 'POST') {
@@ -94,15 +75,16 @@ export default async function handler(req) {
       scoreData.timestamp = Date.now();
 
       // 添加到有序集合
-      await redisCommand('zadd', [`leaderboard:${game}`, scoreData.score, JSON.stringify(scoreData)]);
+      await redis.zadd(`leaderboard:${game}`, {
+        score: scoreData.score,
+        member: JSON.stringify(scoreData)
+      });
 
       // 只保留前 50 名
-      await redisCommand('zremrangebyrank', [`leaderboard:${game}`, 0, -51]);
+      await redis.zremrangebyrank(`leaderboard:${game}`, 0, -51);
 
       // 获取最新排行榜
-      const result = await redisCommand('zrange', [`leaderboard:${game}`, '0', '49']);
-      console.log('After save ZRange:', result);
-      const leaderboard = result || [];
+      const leaderboard = await redis.zrange(`leaderboard:${game}`, 0, 49);
       const data = leaderboard.map(item => JSON.parse(item));
 
       return new Response(JSON.stringify({ success: true, leaderboard: data }), {
@@ -115,9 +97,9 @@ export default async function handler(req) {
     } else if (req.method === 'DELETE') {
       // 清空排行榜
       if (game === 'all') {
-        const keys = await redisCommand('keys', ['leaderboard:*']);
-        if (keys && keys.length > 0) {
-          await redisCommand('del', keys);
+        const keys = await redis.keys('leaderboard:*');
+        if (keys.length > 0) {
+          await redis.del(...keys);
         }
         return new Response(JSON.stringify({ success: true, leaderboard: {} }), {
           status: 200,
@@ -127,7 +109,7 @@ export default async function handler(req) {
           }
         });
       } else {
-        await redisCommand('del', [`leaderboard:${game}`]);
+        await redis.del(`leaderboard:${game}`);
         return new Response(JSON.stringify({ success: true, leaderboard: [] }), {
           status: 200,
           headers: { 
