@@ -1,8 +1,16 @@
 // Vercel Serverless Function for Leaderboard
 // 使用 Upstash Redis REST API
 
-const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+// Vercel KV (Upstash Redis) 环境变量
+const KV_URL = process.env.KV_URL || process.env.UPSTASH_REDIS_REST_URL;
+const KV_REST_API_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const KV_REST_API_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+async function redisCommand(command, args = []) {
+  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) {
+    console.error('Redis 未配置');
+    return null;
+  }
 
 async function redisCommand(command, args = []) {
   if (!UPSTASH_REDIS_REST_URL || !UPSTASH_REDIS_REST_TOKEN) {
@@ -10,10 +18,10 @@ async function redisCommand(command, args = []) {
     return null;
   }
 
-  const response = await fetch(`${UPSTASH_REDIS_REST_URL}/${command}`, {
+  const response = await fetch(`${KV_REST_API_URL}/${command}`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${UPSTASH_REDIS_REST_TOKEN}`,
+      'Authorization': `Bearer ${KV_REST_API_TOKEN}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(args)
