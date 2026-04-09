@@ -1,4 +1,4 @@
-// 测试 Redis 连接 - 使用 Upstash REST API 格式
+// 测试 Redis 连接 - 使用 Upstash Pipeline REST API
 
 export const config = {
   runtime: 'edge',
@@ -20,18 +20,14 @@ export default async function handler() {
   }
 
   try {
-    // Upstash REST API 格式：POST /command/key/arg1/arg2
-    // 或者 POST / 带 body: { "commands": [["set","key","value"]] }
-    
-    const body = {
-      commands: [
-        ["ping"],
-        ["zadd", "test:leaderboard", 100, JSON.stringify({name:'test',score:100})],
-        ["zrange", "test:leaderboard", 0, -1]
-      ]
-    };
+    // Upstash Pipeline REST API 格式
+    const body = [
+      ["PING"],
+      ["ZADD", "test:leaderboard", 100, JSON.stringify({name:'test',score:100})],
+      ["ZRANGE", "test:leaderboard", 0, -1]
+    ];
 
-    const res = await fetch(`${KV_REST_API_URL}/`, {
+    const res = await fetch(`${KV_REST_API_URL}/pipeline`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${KV_REST_API_TOKEN}`,
