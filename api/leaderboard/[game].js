@@ -50,15 +50,15 @@ export default async function handler(req) {
   try {
     if (req.method === 'GET') {
       // 获取排行榜
-      const result = await redisCommand('zrange', [`leaderboard:${game}`, 0, -1, 'WITHSCORES', 'REV']);
-      if (!result) {
+      const result = await redisCommand('zrange', [`leaderboard:${game}`, 0, 49, 'REV']);
+      console.log('ZRange result:', result);
+      if (!result || !Array.isArray(result)) {
         return new Response(JSON.stringify({ success: true, leaderboard: [] }), {
           status: 200,
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       }
-      const leaderboard = result;
-      const data = leaderboard.map(item => JSON.parse(item));
+      const data = result.map(item => JSON.parse(item));
       
       return new Response(JSON.stringify({ success: true, leaderboard: data }), {
         status: 200,
@@ -100,7 +100,8 @@ export default async function handler(req) {
       await redisCommand('zremrangebyrank', [`leaderboard:${game}`, 0, -51]);
 
       // 获取最新排行榜
-      const result = await redisCommand('zrange', [`leaderboard:${game}`, 0, -1, 'WITHSCORES', 'REV']);
+      const result = await redisCommand('zrange', [`leaderboard:${game}`, 0, 49, 'REV']);
+      console.log('After save ZRange:', result);
       const leaderboard = result || [];
       const data = leaderboard.map(item => JSON.parse(item));
 
