@@ -6,7 +6,8 @@ const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 async function redisCommand(command, args = []) {
   if (!UPSTASH_REDIS_REST_URL || !UPSTASH_REDIS_REST_TOKEN) {
-    throw new Error('未配置 Redis 环境变量');
+    // 返回空结果，让前端使用 localStorage 降级方案
+    return null;
   }
 
   const response = await fetch(`${UPSTASH_REDIS_REST_URL}/${command}`, {

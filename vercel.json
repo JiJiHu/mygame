@@ -24,10 +24,9 @@
       ]
     }
   ],
-  "env": {
-    "UPSTASH_REDIS_REST_URL": "@upstash_redis_rest_url",
-    "UPSTASH_REDIS_REST_TOKEN": "@upstash_redis_rest_token"
-  },
+  // 环境变量需要在 Vercel 控制台手动配置
+  // Settings → Environment Variables
+  // UPSTASH_REDIS_REST_URL 和 UPSTASH_REDIS_REST_TOKEN
   "routes": [
     { "handle": "filesystem" },
     { "src": "/api/leaderboard/(.*)", "dest": "/api/leaderboard/[game].js" },
