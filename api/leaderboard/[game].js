@@ -1,7 +1,30 @@
 // Vercel Serverless Function for Leaderboard
-// 使用 Vercel KV (基于 Upstash Redis)
+// 使用 Upstash Redis REST API
 
-import { kv } from '@vercel/kv';
+const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+async function redisCommand(command, args = []) {
+  if (!UPSTASH_REDIS_REST_URL || !UPSTASH_REDIS_REST_TOKEN) {
+    console.error('Redis 未配置');
+    return null;
+  }
+
+  const response = await fetch(`${UPSTASH_REDIS_REST_URL}/${command}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${UPSTASH_REDIS_REST_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(args)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Redis 错误：${response.statusText}`);
+  }
+
+  return response.json();
+}
 
 export const config = {
   runtime: 'edge',
@@ -27,7 +50,14 @@ export default async function handler(req) {
   try {
     if (req.method === 'GET') {
       // 获取排行榜
-      const leaderboard = await kv.zrange(`leaderboard:${game}`, 0, -1, { rev: true });
+      const result = await redisCommand('zrange', [`leaderboard:${game}`, 0, -1, 'WITHSCORES', 'REV']);
+      if (!result) {
+        return new Response(JSON.stringify({ success: true, leaderboard: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+      const leaderboard = result;
       const data = leaderboard.map(item => JSON.parse(item));
       
       return new Response(JSON.stringify({ success: true, leaderboard: data }), {
@@ -64,16 +94,14 @@ export default async function handler(req) {
       scoreData.timestamp = Date.now();
 
       // 添加到有序集合
-      await kv.zadd(`leaderboard:${game}`, {
-        score: scoreData.score,
-        member: JSON.stringify(scoreData)
-      });
+      await redisCommand('zadd', [`leaderboard:${game}`, scoreData.score, JSON.stringify(scoreData)]);
 
       // 只保留前 50 名
-      await kv.zremrangebyrank(`leaderboard:${game}`, 0, -51);
+      await redisCommand('zremrangebyrank', [`leaderboard:${game}`, 0, -51]);
 
       // 获取最新排行榜
-      const leaderboard = await kv.zrange(`leaderboard:${game}`, 0, -1, { rev: true });
+      const result = await redisCommand('zrange', [`leaderboard:${game}`, 0, -1, 'WITHSCORES', 'REV']);
+      const leaderboard = result || [];
       const data = leaderboard.map(item => JSON.parse(item));
 
       return new Response(JSON.stringify({ success: true, leaderboard: data }), {
@@ -86,10 +114,9 @@ export default async function handler(req) {
     } else if (req.method === 'DELETE') {
       // 清空排行榜
       if (game === 'all') {
-        const keys = await kv.keys('leaderboard:*');
-        if (keys.length > 0) {
-          await kv.del(...keys);
-        }
+        const keys = await redisCommand('keys', ['leaderboard:*']);
+        if (keys && keys.length > 0) {
+          await redisCommand('del', keys);
         return new Response(JSON.stringify({ success: true, leaderboard: {} }), {
           status: 200,
           headers: { 
@@ -98,7 +125,7 @@ export default async function handler(req) {
           }
         });
       } else {
-        await kv.del(`leaderboard:${game}`);
+        await redisCommand('del', [`leaderboard:${game}`]);
         return new Response(JSON.stringify({ success: true, leaderboard: [] }), {
           status: 200,
           headers: { 
