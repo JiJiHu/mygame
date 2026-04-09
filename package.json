@@ -8,6 +8,7 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
-    "@vercel/node": "^3.0.0"
+    "@vercel/node": "^3.0.0",
+    "@vercel/kv": "^1.0.0"
   }
 }
