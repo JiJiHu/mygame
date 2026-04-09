@@ -1399,7 +1399,7 @@ AngryBirds.Game.prototype = {
 		for (var i=0;i<this.enemies.children.length;i++)
 			{
 			// CHECKING IF THE ENEMY IS IN MOVEMENT AND THAT WASN'T KILLED
-			if (Math.abs(this.enemies.children[i].body.velocity.x) + Math.abs(this.enemies.children[i].body.velocity.y) > 0.8 && this.enemies.children[i].alpha==1)
+			if (Math.abs(this.enemies.children[i].body.velocity.x) + Math.abs(this.enemies.children[i].body.velocity.y) > 5 && this.enemies.children[i].alpha==1)
 				{
 				// SETTING THAT THE GAME IS MOTION
 				gameInMotion = true;

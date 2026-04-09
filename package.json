@@ -1,0 +1,13 @@
+{
+  "name": "mygame",
+  "version": "2.0.0",
+  "description": "海贼王游戏合集",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@vercel/node": "^3.0.0"
+  }
+}

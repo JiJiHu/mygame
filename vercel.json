@@ -1,6 +1,7 @@
 {
   "version": 2,
   "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "**", "use": "@vercel/static" }
   ],
   "headers": [
@@ -23,8 +24,13 @@
       ]
     }
   ],
+  "env": {
+    "UPSTASH_REDIS_REST_URL": "@upstash_redis_rest_url",
+    "UPSTASH_REDIS_REST_TOKEN": "@upstash_redis_rest_token"
+  },
   "routes": [
     { "handle": "filesystem" },
+    { "src": "/api/leaderboard/(.*)", "dest": "/api/leaderboard/[game].js" },
     { "src": "/games/angry-birds", "dest": "/games/angry-birds/index.html" },
     { "src": "/games/angry-birds/", "dest": "/games/angry-birds/index.html" },
     { "src": "/games/snake", "dest": "/games/snake/snake.html" },
