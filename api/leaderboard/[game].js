@@ -41,7 +41,8 @@ export default async function handler(req) {
     if (req.method === 'GET') {
       // 获取排行榜
       const leaderboard = await redis.zrange(`leaderboard:${game}`, 0, 49);
-      const data = leaderboard.map(item => JSON.parse(item));
+      console.log('ZRange result:', leaderboard);
+      const data = leaderboard ? leaderboard.map(item => typeof item === 'string' ? JSON.parse(item) : item) : [];
       
       return new Response(JSON.stringify({ success: true, leaderboard: data }), {
         status: 200,
@@ -85,7 +86,8 @@ export default async function handler(req) {
 
       // 获取最新排行榜
       const leaderboard = await redis.zrange(`leaderboard:${game}`, 0, 49);
-      const data = leaderboard.map(item => JSON.parse(item));
+      console.log('After save ZRange:', leaderboard);
+      const data = leaderboard ? leaderboard.map(item => typeof item === 'string' ? JSON.parse(item) : item) : [];
 
       return new Response(JSON.stringify({ success: true, leaderboard: data }), {
         status: 200,
