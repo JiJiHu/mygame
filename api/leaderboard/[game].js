@@ -39,8 +39,7 @@ export default async function handler(req) {
     const redis = getRedisClient();
     
     if (req.method === 'GET') {
-      // 获取排行榜
-      const leaderboard = await redis.zrange(`leaderboard:${game}`, 0, 49);
+      const leaderboard = await redis.zrange(leaderboard:, 0, 49);
       console.log('ZRange result:', leaderboard);
       const data = leaderboard ? leaderboard.map(item => typeof item === 'string' ? JSON.parse(item) : item) : [];
       
@@ -52,7 +51,6 @@ export default async function handler(req) {
         }
       });
     } else if (req.method === 'POST') {
-      // 保存分数
       const body = await req.json();
       
       if (!body || (body.score === undefined && body.time === undefined && body.moves === undefined)) {
@@ -65,7 +63,6 @@ export default async function handler(req) {
         });
       }
 
-      // 标准化数据
       const scoreData = { ...body };
       if (scoreData.score === undefined) {
         if (scoreData.moves !== undefined) scoreData.score = scoreData.moves;
@@ -75,17 +72,18 @@ export default async function handler(req) {
       scoreData.date = new Date().toISOString();
       scoreData.timestamp = Date.now();
 
-      // 添加到有序集合
-      await redis.zadd(`leaderboard:${game}`, {
+      await redis.zadd(leaderboard:, {
         score: scoreData.score,
         member: JSON.stringify(scoreData)
       });
 
-      // 只保留前 50 名
-      await redis.zremrangebyrank(`leaderboard:${game}`, 0, -51);
+      // 只保留前 50 名 - 删除排名 50 之后的所有数据
+      const count = await redis.zcard(leaderboard:);
+      if (count > 50) {
+        await redis.zremrangebyrank(leaderboard:, 50, -1);
+      }
 
-      // 获取最新排行榜
-      const leaderboard = await redis.zrange(`leaderboard:${game}`, 0, 49);
+      const leaderboard = await redis.zrange(leaderboard:, 0, 49);
       console.log('After save ZRange:', leaderboard);
       const data = leaderboard ? leaderboard.map(item => typeof item === 'string' ? JSON.parse(item) : item) : [];
 
@@ -97,7 +95,6 @@ export default async function handler(req) {
         }
       });
     } else if (req.method === 'DELETE') {
-      // 清空排行榜
       if (game === 'all') {
         const keys = await redis.keys('leaderboard:*');
         if (keys.length > 0) {
@@ -111,7 +108,7 @@ export default async function handler(req) {
           }
         });
       } else {
-        await redis.del(`leaderboard:${game}`);
+        await redis.del(leaderboard:);
         return new Response(JSON.stringify({ success: true, leaderboard: [] }), {
           status: 200,
           headers: { 
